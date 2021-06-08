@@ -44,6 +44,13 @@ To add:
 - [ ] Create a folder for each conversation.
 - [ ] Validate that the transcript, audio, and metadata names follow the correct naming scheme.
 - [ ] Make sure that the dataset meets both the clarin and the ldc standard.
+- [ ] Create a running total of transcribed conversation count out of the total conversation count.
+- [ ] Create a list of out of vocabulary words based on an existing pronunciation dictionary
+- [ ] Create a README for the dataset. Not this one
+  - [ ] Add a description (both icelandic and english)
+  - [ ] List the dataset authors and contact people
+  - [ ] List what's in the spjallrómur dataset directory structures and the file contents
+  - [ ] Add the statistics mentioned above (speakers, speech duration, demographics data)
 - [ ] Automatically find the conversation topics from the following:
   - Technology
   - Politics
