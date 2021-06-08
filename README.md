@@ -62,8 +62,11 @@ To add:
 - [ ] Redact "steini" from any conversations which were spoken before May 3rd.
 
 
-## Authors and Contacts
-Authors and contacts for the dataset
+## Authors
+Lára Margrét H. Hólmfriðardóttir
+Málfriður Anna Eiríksdóttir
+Judy Y. Fong lvl@judyyfong.xyz
+
 
 ## License
 - Apache 2.0
