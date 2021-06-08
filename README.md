@@ -26,10 +26,10 @@ To add:
 ## Notes
 - Each participant's recording shall be coordinated with other participants' recordings. These files shall be converted to .wav files where there is one channel for each participant. 
 - Participants have the option of marking portions they do not want included in published data. These portions can be 'beeped' or cut out using tools such as Audacity.
-- Each participant has their own .srt file, where their portion of the conversation is written.
+- Each participant has their own .json file, where their portion of the conversation is written.
 - Files should be named as follows:
   - Audio files: convo_XXXX.wav, e.g. convo_0001.
-  - Text files: speaker_X_convo_XXXX.srt, e.g. speaker_1_convo_0001.srt
+  - Text files: speaker_X_convo_XXXX.json, e.g. speaker_1_convo_0001.json
 - There should only be a single point of entry for users.
 
 
@@ -62,4 +62,3 @@ Authors and contacts for the dataset
 - Apache 2.0
 
 ## Acknowledgements
-
