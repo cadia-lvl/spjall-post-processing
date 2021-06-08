@@ -31,6 +31,7 @@ To add:
   - Audio files: convo_XXXX.wav, e.g. convo_0001.
   - Text files: speaker_X_convo_XXXX.json, e.g. speaker_1_convo_0001.json
 - There should only be a single point of entry for users.
+- Do not save any credentials or urls to the repo. (spjall, tiro, or account access)
 
 
 ## Task List
