@@ -29,14 +29,14 @@ class Extraction:
         
         # Not using the API filter, but it functions for now.
         filtered = [obj for obj in self.transcripts if (kw in obj['metadata']['keywords'])]
-        # write_json_to_file(filtered, "filtered.json")    
+        write_json_to_file(filtered, "filtered.json")    
 
         return filtered
 
     def get_progress(self):
         """ Returns the % of transcribed conversation """
         transcribed = self.filter_transcripts("TRANSCRIBED")
-        print(len(transcribed) / len(self.transcripts) * 100)
+
         return len(transcribed) / len(self.transcripts) * 100
 
 
@@ -61,5 +61,4 @@ if __name__ == '__main__':
     token = load_json('json_files/token.json')
 
     extract = Extraction(urls, token)
-    extract.get_progress()
 
