@@ -14,7 +14,7 @@ class Extraction:
         response = requests.get(self.urls['transcripts_url'], headers=self.headers)
         transcripts = response.json()['transcripts']
 
-        write_json_to_file(transcripts, "transcripts.json")
+        # write_json_to_file(transcripts, "transcripts.json")
 
         return transcripts
 
@@ -29,7 +29,7 @@ class Extraction:
         
         # Not using the API filter, but it functions for now.
         filtered = [obj for obj in self.transcripts if (kw in obj['metadata']['keywords'])]
-        write_json_to_file(filtered, "filtered.json")    
+        # write_json_to_file(filtered, "filtered.json")    
 
         return filtered
 
@@ -38,6 +38,13 @@ class Extraction:
         transcribed = self.filter_transcripts("TRANSCRIBED")
 
         return len(transcribed) / len(self.transcripts) * 100
+
+    def get_transcript_by_id(self, id):
+        """ Gets a transcript by id """
+        response = requests.get(self.urls['transcripts_url'] + '/' + id, headers=self.headers)
+        transcript = response.json()
+
+        return transcript
 
 
 def load_json(json_file):
@@ -61,4 +68,3 @@ if __name__ == '__main__':
     token = load_json('json_files/token.json')
 
     extract = Extraction(urls, token)
-
