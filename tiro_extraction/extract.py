@@ -13,21 +13,12 @@ class Extraction:
         """ Gets the transcripts from the Tiro API """
         response = requests.get(self.urls['transcripts_url'], headers=self.headers)
         transcripts = response.json()['transcripts']
-
         # write_json_to_file(transcripts, "transcripts.json")
 
         return transcripts
 
     def filter_transcripts(self, kw):
         """ Filters transcripts by keyword """
-        # TODO: From the API, it's a bit funky ?
-        # filter = '[%22{}%22]'.format(tag)
-        # print(self.urls['filter_transcripts_url'] + filter)
-        # response = requests.get(self.urls['filter_transcripts_url']+filter, headers=self.headers)
-        # transcripts = response.json() 
-
-        
-        # Not using the API filter, but it functions for now.
         filtered = [obj for obj in self.transcripts if (kw in obj['metadata']['keywords'])]
         # write_json_to_file(filtered, "filtered.json")    
 
