@@ -5,14 +5,23 @@ import os
 
 class Extraction:
     def __init__(self, urls, token):
-        self.headers = {'Authorization' : token['api_token']}
+        self.headers = {'Authorization' : 'Bearer ' + token['api_token']}
         self.urls = urls
         self.transcripts = self.extract_transcripts()
 
     def extract_transcripts(self):
         """ Gets the transcripts from the Tiro API """
         response = requests.get(self.urls['transcripts_url'], headers=self.headers)
-        transcripts = response.json()['transcripts']
+
+        # If user is not authenticated, or an error occurs.
+        if 'message' in response.json():
+            print(response.json()['message'])
+
+            transcripts = response.json()
+
+        else:
+            transcripts = response.json()['transcripts']
+        
         # write_json_to_file(transcripts, "transcripts.json")
 
         return transcripts
