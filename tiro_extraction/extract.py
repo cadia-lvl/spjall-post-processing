@@ -16,11 +16,19 @@ class Extraction:
         # If user is not authenticated, or an error occurs.
         if 'message' in response.json():
             print(response.json()['message'])
+            # print("Fetching public transcripts...")
+
+            # response = requests.get(self.urls['transcripts_url'])
+            # transcripts = response.json()['transcripts']
+
+            # print("Public transcripts extracted.")
 
             transcripts = response.json()
 
         else:
             transcripts = response.json()['transcripts']
+
+            print("Transcripts extracted.")
         
         # write_json_to_file(transcripts, "transcripts.json")
 
