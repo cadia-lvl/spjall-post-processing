@@ -28,7 +28,7 @@ class Extraction:
         else:
             transcripts = response.json()['transcripts']
 
-            print("Transcripts extracted.")
+            # print("Transcripts extracted.")
         
         # write_json_to_file(transcripts, "transcripts.json")
 
