@@ -82,4 +82,4 @@ if __name__ == '__main__':
 
 
     extract = Extraction(urls, token)
-    print("Percentage of recordings transcribed: {:.2f}".format(extract.get_progress()))
+    print("Recordings transcribed: {:.2f}%".format(extract.get_progress()))
