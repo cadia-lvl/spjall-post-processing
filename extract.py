@@ -1,11 +1,12 @@
 import requests
 import json
+import argparse
 import os
 
 
 class Extraction:
     def __init__(self, urls, token):
-        self.headers = {'Authorization' : 'Bearer ' + token['api_token']}
+        self.headers = {'Authorization': 'Bearer ' + token['api_token']}
         self.urls = urls
         self.transcripts = self.extract_transcripts()
 
@@ -29,7 +30,7 @@ class Extraction:
             transcripts = response.json()['transcripts']
 
             # print("Transcripts extracted.")
-        
+
         # write_json_to_file(transcripts, "transcripts.json")
 
         return transcripts
@@ -37,7 +38,7 @@ class Extraction:
     def filter_transcripts(self, kw):
         """ Filters transcripts by keyword """
         filtered = [obj for obj in self.transcripts if (kw in obj['metadata']['keywords'])]
-        # write_json_to_file(filtered, "filtered.json")    
+        # write_json_to_file(filtered, "filtered.json")
 
         return filtered
 
@@ -47,9 +48,9 @@ class Extraction:
 
         return len(transcribed) / len(self.transcripts) * 100
 
-    def get_transcript_by_id(self, id):
+    def get_transcript_by_id(self, transcript_id):
         """ Gets a transcript by id """
-        response = requests.get(self.urls['transcripts_url'] + '/' + id, headers=self.headers)
+        response = requests.get(self.urls['transcripts_url'] + '/' + transcript_id, headers=self.headers)
         transcript = response.json()
 
         return transcript
@@ -65,14 +66,20 @@ def load_json(json_file):
 
 def write_json_to_file(json_object, filename):
     """ Writes a JSON object to a file, mostly for testing as it is """
-    with open("json_files/" + filename, 'w') as outfile:
+    with open("config/json/" + filename, 'w') as outfile:
         json.dump(json_object, outfile, indent=4)
 
 
 if __name__ == '__main__':
-    os.chdir("tiro_extraction/")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('urls_file')
+    parser.add_argument('token_file')
 
-    urls = load_json('json_files/urls.json')
-    token = load_json('json_files/token.json')
+    args = parser.parse_args()
+
+    urls = load_json(args.urls_file)
+    token = load_json(args.token_file)
+
 
     extract = Extraction(urls, token)
+    print("Percentage of recordings transcribed: {:.2f}".format(extract.get_progress()))
