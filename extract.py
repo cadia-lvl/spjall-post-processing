@@ -66,7 +66,7 @@ def load_json(json_file):
 
 def write_json_to_file(json_object, filename):
     """ Writes a JSON object to a file, mostly for testing as it is """
-    with open("config/json/" + filename, 'w') as outfile:
+    with open(filename, 'w') as outfile:
         json.dump(json_object, outfile, indent=4)
 
 
