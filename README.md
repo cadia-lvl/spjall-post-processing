@@ -36,13 +36,13 @@ To add:
 
 ## Task List
 - [ ] Automatically send audio files to the Tiro API.
-- [ ] Automatically receive transcripts from the Tiro API.
+- [x] Automatically receive transcripts from the Tiro API.
 - [ ] Get the total duration of speech from the transcripts and verify it.
 - [ ] Create a list out of vocabulary words based on a pronunciation dictionary.
 - [ ] Validate that the transcripts has proper tags, i.e. transcribed, proofread, etc.
-- [ ] Validate that the duration of the transcripts does not exceed that of the corresponding audio files.
+- [x] Validate that the duration of the transcripts does not exceed that of the corresponding audio files.
 - [ ] Validate that the timestamps for speech do not correlate with any durations of silence over 30 seconds long.
-- [ ] Create a folder for each conversation.
+- [x] Create a folder for each conversation.
 - [ ] Validate that the transcript, audio, and metadata names follow the correct naming scheme.
 - [ ] Make sure that the dataset meets both the clarin and the ldc standard.
 - [ ] Create a running total of transcribed conversation count out of the total conversation count.

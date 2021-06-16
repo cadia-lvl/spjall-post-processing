@@ -3,6 +3,7 @@ import json
 import argparse
 import re
 import os
+import shutil
 
 
 class Extraction:
@@ -36,8 +37,11 @@ class Extraction:
             transcripts = response.json()['transcripts']
 
             # print("Transcripts extracted.")
-
-        # write_json_to_file(transcripts, "transcripts.json")
+        
+        # Filter so that only the conversation transcripts are stored
+        self.transcripts = transcripts
+        transcripts = self.filter_transcripts("__spjallromur__")
+        # write_json_to_file(transcripts, "testing/transcripts.json")
 
         return transcripts
 
@@ -49,7 +53,7 @@ class Extraction:
         return filtered
 
     def get_progress(self):
-        """ Returns the % of transcribed conversation """
+        """ Returns the % of transcribed files """
         transcribed = self.filter_transcripts("TRANSCRIBED")
 
         return len(transcribed) / len(self.transcripts) * 100
@@ -89,9 +93,27 @@ class Extraction:
 
     def make_conversation_directory(self):
         """ Creates a directory for each conversation, containing corresponding audio and json files. """
-        for t in self.filter_transcripts("ritari:Lára"):
+        print("Creating directory for each conversation. This might take a moment...")
+        
+        try:
+            os.mkdir("conversations")
+        # If conversations directory already exists, clear it.
+        except FileExistsError:
+            print("Clearing conversations directory...")
+            for dir in os.listdir("conversations"):
+                shutil.rmtree("conversations/" + dir)
+
+
+        count = 0
+        for t in self.transcripts:
             transcript_id = self.get_transcript_id(t)
-            # Get the transcript by id to access the url for the audio file
+
+            # If the transcript is invalid, it will not be added to a directory.
+            if t in self.filter_transcripts("INVALID"):
+                print("Transcript {} is invalid and was not added to directory.".format(transcript_id))
+                continue
+
+            # Get the transcript by id to access the uri for the audio file
             transcript = self.get_transcript_by_id(transcript_id)
             convo, speaker = self.get_subject_data(transcript)
 
@@ -100,8 +122,21 @@ class Extraction:
             try:
                 os.mkdir("conversations/{}".format(convo))
                 self.get_audio_file_from_uri(transcript, filepath)
+                write_json_to_file(t, filepath + "_meta.json")
+                write_json_to_file(transcript, filepath + "_transcript.json")
+
             except FileExistsError:
                 self.get_audio_file_from_uri(transcript, filepath)
+                write_json_to_file(t, filepath + "_meta.json")
+                write_json_to_file(transcript, filepath + "_transcript.json")
+            # The conversation name contains a file path.
+            except FileNotFoundError:
+                print("Could not create directory for {}. Transcript name contains a filepath.".format(convo))
+            
+            count += 1
+            print("{}/{} transcripts processed.".format(count, len(self.transcripts)))
+
+        print("Completed.")
 
     """
     Transcript validation
@@ -146,7 +181,6 @@ if __name__ == '__main__':
 
     urls = load_json(args.urls_file)
     token = load_json(args.token_file)
-
 
     extract = Extraction(urls, token)
     print("Recordings transcribed: {:.2f}%".format(extract.get_progress()))
