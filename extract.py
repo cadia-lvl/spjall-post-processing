@@ -1,6 +1,7 @@
 import requests
 import json
 import argparse
+from transcript import Transcript
 import os
 
 
@@ -53,7 +54,11 @@ class Extraction:
         response = requests.get(self.urls['transcripts_url'] + '/' + transcript_id, headers=self.headers)
         transcript = response.json()
 
-        return transcript
+        # write_json_to_file(transcript, "transcript.json")
+
+        transcript_instance = Transcript(transcript, self.headers)
+
+        return transcript_instance
 
 
 def load_json(json_file):
@@ -83,3 +88,10 @@ if __name__ == '__main__':
 
     extract = Extraction(urls, token)
     print("Recordings transcribed: {:.2f}%".format(extract.get_progress()))
+
+    transcript = extract.get_transcript_by_id(urls['test_id'])
+
+    duration = transcript.get_total_duration_of_speech()
+    print("Total:", duration, "seconds", "=", duration/60, "minutes")
+
+    print("Transcript is valid:", transcript.validate_transcript_duration())
