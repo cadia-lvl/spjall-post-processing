@@ -1,5 +1,5 @@
 config/token.json
 config/urls.json
-transcript.json
+testing/
 __pycache__
-audiofile.wav
+conversations/
