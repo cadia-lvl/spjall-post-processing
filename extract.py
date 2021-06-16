@@ -48,16 +48,16 @@ class Extraction:
 
         return filtered
 
-
-    """
-    Transcript oriented processing
-    """
-
     def get_progress(self):
         """ Returns the % of transcribed conversation """
         transcribed = self.filter_transcripts("TRANSCRIBED")
 
         return len(transcribed) / len(self.transcripts) * 100
+
+
+    """
+    Transcript oriented processing
+    """
 
     def get_transcript_by_id(self, transcript_id):
         """ Gets a transcript by id """
