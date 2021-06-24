@@ -12,7 +12,6 @@ class Extraction:
         self.urls = urls
         self.transcripts = self.extract_transcripts()
 
-
     """
     General extraction and filtering
     """
@@ -58,7 +57,6 @@ class Extraction:
 
         return len(transcribed) / len(self.transcripts) * 100
 
-
     """
     Transcript oriented processing
     """
@@ -91,9 +89,35 @@ class Extraction:
         with open('{}.wav'.format(filepath), 'wb') as f:
             f.write(response.content)
 
+    def get_metadata(self, convo, speaker):
+        """ Gets the JSON metadata of a speaker in a conversation """
+        response = requests.get(urls['metadata'] + '/{}/{}_client_{}.json'.format(convo, convo, speaker))
+        metadata = response.json()
+
+        # write_json_to_file(metadata, 'metadata.json')
+
+        return metadata
+
+    def write_to_log(self, str, filename):
+        """ Writes a message to a log text file """
+        with open(filename, 'a+') as f:
+            f.seek(0)
+            contents = f.read(100)
+            # If the file is not empty, add a new line.
+            if len(contents) > 0:
+                f.write('\n')
+
+            f.write(str)
+
+    def clear_log(self, filename):
+        """ Clears the text file  for new logging """
+        open(filename, 'w').close()
+
     def make_conversation_directory(self):
         """ Creates a directory for each conversation, containing corresponding audio and json files. """
         print("Creating directory for each conversation. This might take a moment...")
+        log_file = 'dir_log.txt'
+        self.clear_log(log_file)
         
         try:
             os.mkdir("conversations")
@@ -103,39 +127,59 @@ class Extraction:
             for dir in os.listdir("conversations"):
                 shutil.rmtree("conversations/" + dir)
 
-
         count = 0
+        not_added = 0
         for t in self.transcripts:
             transcript_id = self.get_transcript_id(t)
-
-            # If the transcript is invalid, it will not be added to a directory.
+            # If the transcript is invalid, a test transcript, or unifinished, it will not be added to a directory.
             if t in self.filter_transcripts("INVALID"):
-                print("Transcript {} is invalid and was not added to directory.".format(transcript_id))
-                continue
+                self.write_to_log("Transcript {} is invalid and was not added to directory.".format(transcript_id), log_file)
+                not_added += 1
+            # TODO: Remove if guaranteed that no test transcript has __spjallromur__/TRANSCRIBED/PROOFREAD tag, otherwise the subject parsing causes problems.
+            elif t['metadata']['subject'] == "Test Spegillinn":
+                self.write_to_log("Transcript {} is a test transcript and was not added to directory.".format(transcript_id), log_file)
+                not_added += 1
+            elif t in self.filter_transcripts("TODO") or t in self.filter_transcripts("INPROGRESS"):
+                self.write_to_log("Transcript {} is unfinished and was not added to directory.".format(transcript_id), log_file)
+                not_added += 1
+            # If the transcript has been marked as transcribed or proofread, add it to a corresponding directory.
+            elif t in self.filter_transcripts("TRANSCRIBED") or t in self.filter_transcripts("PROOFREAD"):
+                # Get the transcript by id to access the uri for the audio file
+                transcript = self.get_transcript_by_id(transcript_id)
+                convo, speaker = self.get_subject_data(transcript)
+                t_metadata = self.get_metadata(convo, speaker)
 
-            # Get the transcript by id to access the uri for the audio file
-            transcript = self.get_transcript_by_id(transcript_id)
-            convo, speaker = self.get_subject_data(transcript)
+                # valid = self.validate_transcript_metadata_duration(t, t_metadata)
+                # if not valid:
+                #     self.write_to_log("Transcript {} and its metadata (/{}/{}_client_{}.json) duration do not match. Transcript not added to directory.".format(transcript_id, convo, convo, speaker), log_file)
+                #     not_added += 1
+                #     continue
 
-            # Where the file should be written
-            filepath = "conversations/{}/speaker_{}_convo_{}".format(convo, speaker, convo)
-            try:
-                os.mkdir("conversations/{}".format(convo))
-                self.get_audio_file_from_uri(transcript, filepath)
-                write_json_to_file(t, filepath + "_meta.json")
-                write_json_to_file(transcript, filepath + "_transcript.json")
-
-            except FileExistsError:
-                self.get_audio_file_from_uri(transcript, filepath)
-                write_json_to_file(t, filepath + "_meta.json")
-                write_json_to_file(transcript, filepath + "_transcript.json")
-            # The conversation name contains a file path.
-            except FileNotFoundError:
-                print("Could not create directory for {}. Transcript name contains a filepath.".format(convo))
+                # Where the file should be written
+                filepath = "conversations/{}/speaker_{}_convo_{}".format(convo, speaker, convo)
+                try:
+                    os.mkdir("conversations/{}".format(convo))
+                    self.get_audio_file_from_uri(transcript, filepath)
+                    write_json_to_file(t_metadata, filepath + "_meta.json")
+                    write_json_to_file(transcript, filepath + "_transcript.json")
+                # If a directory for a conversation exists, just add the corresponding files.
+                except FileExistsError:
+                    self.get_audio_file_from_uri(transcript, filepath)
+                    write_json_to_file(t_metadata, filepath + "_meta.json")
+                    write_json_to_file(transcript, filepath + "_transcript.json")
+                # If the conversation name contains a file path.
+                except FileNotFoundError:
+                    self.write_to_log("Could not create directory for {}. Transcript name contains a filepath.".format(convo), log_file)
+                    not_added += 1
+            else:
+                self.write_to_log("Transcript {} has unapproved tags and was not added to directory.".format(transcript_id), log_file)
+                not_added += 1
             
             count += 1
             print("{}/{} transcripts processed.".format(count, len(self.transcripts)))
 
+        if not_added > 0:
+            print("{} transcripts were not added to a directory. Refer to dir_log.txt for further information.".format(not_added))
         print("Completed.")
 
     """
@@ -157,6 +201,18 @@ class Extraction:
         
         return True
 
+    def validate_transcript_metadata_duration(self, transcript, metadata):
+        """ Validates that the length of the transcript does not exceed the spjall metadata duration """
+        # The Tiro transcript must always be shorter or equal to the metadata duration.
+        if transcript['metadata']['recordingDuration'] is None:
+            t_id = self.get_transcript_id(transcript)
+            convo, speaker = self.get_subject_data(transcript)
+            print("Duration of transcript {} is set as null.".format(t_id))
+            return False
+        if float(transcript['metadata']['recordingDuration'][:-1]) > float(metadata['duration_seconds']):
+            return False
+
+        return True
 
 def load_json(json_file):
     """ Loads data from a JSON file """
