@@ -1,5 +1,6 @@
 {
     "transcripts_url" : "https://ritari.talgreinir.is/v1alpha1/transcripts",
     "filter_transcripts_url": "https://ritari.talgreinir.is/v1alpha1/transcripts?filter=metadata.keywords%20CONTAINS%20",
+    "samromur_url": "https://s3bucketname.s3.eu-west-2.amazonaws.com",
     "test_url": "https://ritari.talgreinir.is/v1alpha1/transcripts/790dbd84-df1d-4d79-997b-49202d0a3e1d"
 }

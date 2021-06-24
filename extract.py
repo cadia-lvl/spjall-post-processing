@@ -91,12 +91,12 @@ class Extraction:
 
     def get_metadata(self, convo, speaker):
         """ Gets the JSON metadata of a speaker in a conversation """
-        response = requests.get(urls['metadata'] + '/{}/{}_client_{}.json'.format(convo, convo, speaker))
-        metadata = response.json()
+        response = requests.get(urls['samromur_url'] + '/{}/{}_client_{}.json'.format(convo, convo, speaker))
+        t_metadata = response.json()
 
         # write_json_to_file(metadata, 'metadata.json')
 
-        return metadata
+        return t_metadata
 
     def write_to_log(self, str, filename):
         """ Writes a message to a log text file """
@@ -135,10 +135,10 @@ class Extraction:
             if t in self.filter_transcripts("INVALID"):
                 self.write_to_log("Transcript {} is invalid and was not added to directory.".format(transcript_id), log_file)
                 not_added += 1
-            # TODO: Remove if guaranteed that no test transcript has __spjallromur__/TRANSCRIBED/PROOFREAD tag, otherwise the subject parsing causes problems.
-            elif t['metadata']['subject'] == "Test Spegillinn":
-                self.write_to_log("Transcript {} is a test transcript and was not added to directory.".format(transcript_id), log_file)
-                not_added += 1
+            # Remove if guaranteed that no test transcript has __spjallromur__/TRANSCRIBED/PROOFREAD tag, otherwise the subject parsing causes problems.
+            # elif t['metadata']['subject'] == "Test Spegillinn":
+            #     self.write_to_log("Transcript {} is a test transcript and was not added to directory.".format(transcript_id), log_file)
+            #     not_added += 1
             elif t in self.filter_transcripts("TODO") or t in self.filter_transcripts("INPROGRESS"):
                 self.write_to_log("Transcript {} is unfinished and was not added to directory.".format(transcript_id), log_file)
                 not_added += 1
@@ -201,7 +201,7 @@ class Extraction:
 
         return True
 
-    def validate_transcript_metadata_duration(self, transcript, metadata):
+    def validate_transcript_metadata_duration(self, transcript, t_metadata):
         """ Validates that the length of the transcript does not exceed the spjall metadata duration """
         # The Tiro transcript must always be shorter or equal to the metadata duration.
         if transcript['metadata']['recordingDuration'] is None:
@@ -209,7 +209,7 @@ class Extraction:
             convo, speaker = self.get_subject_data(transcript)
             print("Duration of transcript {} is set as null.".format(t_id))
             return False
-        if float(transcript['metadata']['recordingDuration'][:-1]) > float(metadata['duration_seconds']):
+        if float(transcript['metadata']['recordingDuration'][:-1]) > float(t_metadata['duration_seconds']):
             return False
 
         return True
