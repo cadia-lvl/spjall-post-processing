@@ -36,7 +36,7 @@ class Extraction:
             transcripts = response.json()['transcripts']
 
             # print("Transcripts extracted.")
-        
+
         # Filter so that only the conversation transcripts are stored
         self.transcripts = transcripts
         transcripts = self.filter_transcripts("__spjallromur__")
@@ -80,9 +80,9 @@ class Extraction:
     def get_transcript_id(self, transcript):
         """ Gets the id of a transcript """
         _, transcript_id = transcript['name'].split("/")
-        
+
         return transcript_id
-    
+
     def get_audio_file_from_uri(self, transcript, filepath):
         """ Downloads the audio file from the uri of a transcript"""
         response = requests.get(transcript['uri'], headers=self.headers)
@@ -118,7 +118,7 @@ class Extraction:
         print("Creating directory for each conversation. This might take a moment...")
         log_file = 'dir_log.txt'
         self.clear_log(log_file)
-        
+
         try:
             os.mkdir("conversations")
         # If conversations directory already exists, clear it.
@@ -174,7 +174,7 @@ class Extraction:
             else:
                 self.write_to_log("Transcript {} has unapproved tags and was not added to directory.".format(transcript_id), log_file)
                 not_added += 1
-            
+
             count += 1
             print("{}/{} transcripts processed.".format(count, len(self.transcripts)))
 
@@ -198,7 +198,7 @@ class Extraction:
         transcript_duration = float(last_segment['endTime'][:-1]) - float(first_segment['startTime'][:-1])
         if transcript_duration > audio_duration:
             return False
-        
+
         return True
 
     def validate_transcript_metadata_duration(self, transcript, metadata):
@@ -245,7 +245,7 @@ if __name__ == '__main__':
 
     # transcript = extract.get_transcript_by_id(urls['test_id'])
 
-    # duration = extract.get_total_duration_of_speech(transcript)    
+    # duration = extract.get_total_duration_of_speech(transcript)
     # # print("Total:", duration, "seconds", "=", duration/60, "minutes")
 
     # print("Transcript is valid:", extract.validate_transcript_duration(transcript))
