@@ -78,9 +78,9 @@ To add:
 
 
 ## Authors
-Lára Margrét H. Hólmfriðardóttir
-Málfriður Anna Eiríksdóttir
-Judy Y. Fong lvl@judyyfong.xyz
+- Lára Margrét H. Hólmfriðardóttir
+- Málfriður Anna Eiríksdóttir
+- Judy Y. Fong lvl@judyyfong.xyz
 
 
 ## License
