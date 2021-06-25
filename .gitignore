@@ -3,4 +3,4 @@ config/urls.json
 testing/
 __pycache__
 conversations/
-dir_log.txt
+conversations_dir_log.txt

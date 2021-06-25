@@ -40,7 +40,7 @@ class Extraction:
         # Filter so that only the conversation transcripts are stored
         self.transcripts = transcripts
         transcripts = self.filter_transcripts("__spjallromur__")
-        # write_json_to_file(transcripts, "testing/transcripts.json")
+        write_json_to_file(transcripts, "testing/transcripts.json")
 
         return transcripts
 
@@ -89,14 +89,14 @@ class Extraction:
         with open('{}.wav'.format(filepath), 'wb') as f:
             f.write(response.content)
 
-    def get_metadata(self, convo, speaker):
-        """ Gets the JSON metadata of a speaker in a conversation """
+    def get_demographics(self, convo, speaker):
+        """ Gets the JSON demographics of a speaker in a conversation """
         response = requests.get(urls['samromur_url'] + '/{}/{}_client_{}.json'.format(convo, convo, speaker))
-        t_metadata = response.json()
+        t_demographics = response.json()
 
-        # write_json_to_file(metadata, 'metadata.json')
+        # write_json_to_file(t_demographics, 't_demographics.json')
 
-        return t_metadata
+        return t_demographics
 
     def write_to_log(self, str, filename):
         """ Writes a message to a log text file """
@@ -115,8 +115,8 @@ class Extraction:
 
     def make_conversation_directory(self):
         """ Creates a directory for each conversation, containing corresponding audio and json files. """
-        print("Creating directory for each conversation. This might take a moment...")
-        log_file = 'dir_log.txt'
+        print("Creating a directory for each conversation. This might take a moment...")
+        log_file = 'conversations_dir_log.txt'
         self.clear_log(log_file)
 
         try:
@@ -129,6 +129,7 @@ class Extraction:
 
         count = 0
         not_added = 0
+        added = 0
         for t in self.transcripts:
             transcript_id = self.get_transcript_id(t)
             # If the transcript is invalid, a test transcript, or unifinished, it will not be added to a directory.
@@ -147,11 +148,11 @@ class Extraction:
                 # Get the transcript by id to access the uri for the audio file
                 transcript = self.get_transcript_by_id(transcript_id)
                 convo, speaker = self.get_subject_data(transcript)
-                t_metadata = self.get_metadata(convo, speaker)
+                t_demographics = self.get_demographics(convo, speaker)
 
-                # valid = self.validate_transcript_metadata_duration(t, t_metadata)
+                # valid = self.validate_transcript_demographics_duration(t, t_demographics)
                 # if not valid:
-                #     self.write_to_log("Transcript {} and its metadata (/{}/{}_client_{}.json) duration do not match. Transcript not added to directory.".format(transcript_id, convo, convo, speaker), log_file)
+                #     self.write_to_log("Transcript {} and its demographics (/{}/{}_client_{}.json) duration do not match. Transcript not added to directory.".format(transcript_id, convo, convo, speaker), log_file)
                 #     not_added += 1
                 #     continue
 
@@ -160,13 +161,15 @@ class Extraction:
                 try:
                     os.mkdir("conversations/{}".format(convo))
                     self.get_audio_file_from_uri(transcript, filepath)
-                    write_json_to_file(t_metadata, filepath + "_meta.json")
+                    write_json_to_file(t_demographics, filepath + "_demographics.json")
                     write_json_to_file(transcript, filepath + "_transcript.json")
+                    added += 1
                 # If a directory for a conversation exists, just add the corresponding files.
                 except FileExistsError:
                     self.get_audio_file_from_uri(transcript, filepath)
-                    write_json_to_file(t_metadata, filepath + "_meta.json")
+                    write_json_to_file(t_demographics, filepath + "_demographics.json")
                     write_json_to_file(transcript, filepath + "_transcript.json")
+                    added += 1
                 # If the conversation name contains a file path.
                 except FileNotFoundError:
                     self.write_to_log("Could not create directory for {}. Transcript name contains a filepath.".format(convo), log_file)
@@ -179,8 +182,8 @@ class Extraction:
             print("{}/{} transcripts processed.".format(count, len(self.transcripts)))
 
         if not_added > 0:
-            print("{} transcripts were not added to a directory. Refer to dir_log.txt for further information.".format(not_added))
-        print("Completed.")
+            print("{} transcripts were not added to a directory. Refer to conversations_dir_log.txt for further information.".format(not_added))
+        print("Completed. {} transcripts were added to their corresponding directory.".format(added))
 
     """
     Transcript validation
@@ -201,15 +204,15 @@ class Extraction:
 
         return True
 
-    def validate_transcript_metadata_duration(self, transcript, t_metadata):
-        """ Validates that the length of the transcript does not exceed the spjall metadata duration """
-        # The Tiro transcript must always be shorter or equal to the metadata duration.
+    def validate_transcript_demographics_duration(self, transcript, t_demographics):
+        """ Validates that the length of the transcript does not exceed the spjall demographics duration """
+        # The Tiro transcript must always be shorter or equal to the demographics duration.
         if transcript['metadata']['recordingDuration'] is None:
             t_id = self.get_transcript_id(transcript)
-            convo, speaker = self.get_subject_data(transcript)
+            # convo, speaker = self.get_subject_data(transcript)
             print("Duration of transcript {} is set as null.".format(t_id))
             return False
-        if float(transcript['metadata']['recordingDuration'][:-1]) > float(t_metadata['duration_seconds']):
+        if float(transcript['metadata']['recordingDuration'][:-1]) > float(t_demographics['duration_seconds']):
             return False
 
         return True
@@ -241,7 +244,7 @@ if __name__ == '__main__':
     extract = Extraction(urls, token)
     print("Recordings transcribed: {:.2f}%".format(extract.get_progress()))
 
-    # extract.make_conversation_directory()
+    extract.make_conversation_directory()
 
     # transcript = extract.get_transcript_by_id(urls['test_id'])
 
