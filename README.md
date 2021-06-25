@@ -5,8 +5,16 @@ To start out, we will automate the submission and extraction flow of audio files
 
 
 ## Structure
-List the contents/folder structure of the spjallromur directory.
 
+The corpus has the following format:
+```
+        README.txt
+        conversations/
+                convo_id/
+                        speaker_x_convo_xxx_demographics.json
+                        speaker_x_convo_xxx_transcript.json
+                        speaker_x_convo_xxx.wav
+```
 
 ## Packages and Installation
 List packages required to run the scripts, and how to install them.
