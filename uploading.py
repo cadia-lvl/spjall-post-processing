@@ -20,23 +20,32 @@ samromur_url = urls['samromur_url']
 
 def post(extracted,response):
   '''checks if the audio file is already on tiro. Creates body for the files and posts them to tiro.'''
+  is_a = False
+  is_b = False
   for elem in extracted:
     if elem['metadata']['subject'][0:36] == response.json()[1]['session_id']:
+      if elem['metadata']['subject'][44] == "a":
+        is_a = True
+      elif elem['metadata']['subject'][44] == "b":
+        is_b = True
+    if is_a and is_b:
       return None
 
-  test_a = samromur_url + "/" + response.json()[1]['session_id']+"/"+response.json()[1]['client_a']['session_id']+'/_client_a.wav'
-  test_b = samromur_url + "/" + response.json()[1]['session_id']+"/"+response.json()[1]['client_b']['session_id']+'/_client_b.wav'
-  subject_a = response.json()[1]['session_id']+'_client_a.wav'
-  subject_b = response.json()[1]['session_id']+'_client_b.wav'
-
-  body_a = create_body(subject_a,test_a)
-
   authorization = {'Authorization' : "Bearer {}".format(API_TOKEN)}
-  a_res = requests.post(urls['tiro_url'],data=json.dumps(body_a),headers=authorization)
-  print(a_res)
-  body_b = create_body(subject_b,test_b)
-  b_res =requests.post(urls['tiro_url'],data=json.dumps(body_b),headers=authorization)
-  print(b_res)
+
+  if not is_a:
+    test_a = samromur_url + "/" + response.json()[1]['session_id']+"/"+response.json()[1]['client_a']['session_id']+'/_client_a.wav'
+    subject_a = response.json()[1]['session_id']+'_client_a.wav'
+    body_a = create_body(subject_a,test_a)
+    a_res = requests.post(urls['tiro_url'],data=json.dumps(body_a),headers=authorization)
+    print(a_res)
+
+  if not is_b:
+    test_b = samromur_url + "/" + response.json()[1]['session_id']+"/"+response.json()[1]['client_b']['session_id']+'/_client_b.wav'
+    subject_b = response.json()[1]['session_id']+'_client_b.wav'
+    body_b = create_body(subject_b,test_b)
+    b_res =requests.post(urls['tiro_url'],data=json.dumps(body_b),headers=authorization)
+    print(b_res)
 
   return None
 
@@ -56,7 +65,6 @@ def create_body(subject,test):
       #"__spjallromur__",
       #"M\u00e1lt\u00e6kni\u00e1\u00e6tlun",
       #"TODO"
-      
     ]
   },
   "useUri": True,
@@ -64,6 +72,3 @@ def create_body(subject,test):
   
   }
   return body
-
-print('test')
-# /usr/local/bin/python3 /Users/malla/Documents/spjall-post-processing/extract.py /Users/malla/Documents/spjall-post-processing/urls.json /Users/malla/Documents/spjall-post-processing/token.json
