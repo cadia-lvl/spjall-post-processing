@@ -120,9 +120,9 @@ class Extraction:
     def make_conversation_directory(self):
         """ Creates a directory for each conversation, containing corresponding audio and json files. """
         print("Creating a directory for each conversation. This might take a moment...")
-        log_file = 'conversations_dir_log.txt'
+        convo_dir_log = 'conversations_dir_log.txt'
         validation_log = 'validation_log.txt'
-        self.clear_log(log_file)
+        self.clear_log(convo_dir_log)
         self.clear_log(validation_log)
         keep_flag = False
 
@@ -161,14 +161,14 @@ class Extraction:
             # If the transcript is invalid, a test transcript, or unifinished, it will not be added to a directory.
             # if t in self.invalid_transcripts:
             if not self.validate_transcript(t, validation_log):
-                self.write_to_log("Transcript {} is invalid and was not added to directory.".format(transcript_id), log_file)
+                self.write_to_log("Transcript {} is invalid and was not added to directory.".format(transcript_id), convo_dir_log)
                 not_added += 1
             # Remove if guaranteed that no test transcript has __spjallromur__/TRANSCRIBED/PROOFREAD tag, otherwise the subject parsing causes problems.
             # elif t['metadata']['subject'] == "Test Spegillinn":
-            #     self.write_to_log("Transcript {} is a test transcript and was not added to directory.".format(transcript_id), log_file)
+            #     self.write_to_log("Transcript {} is a test transcript and was not added to directory.".format(transcript_id), convo_dir_log)
             #     not_added += 1
             elif t in self.filter_transcripts("TODO") or t in self.filter_transcripts("INPROGRESS"):
-                self.write_to_log("Transcript {} is unfinished and was not added to directory.".format(transcript_id), log_file)
+                self.write_to_log("Transcript {} is unfinished and was not added to directory.".format(transcript_id), convo_dir_log)
                 not_added += 1
             # If the transcript has been marked as transcribed or proofread, add it to a corresponding directory.
             elif t in self.filter_transcripts("TRANSCRIBED") or t in self.filter_transcripts("PROOFREAD"):
@@ -196,10 +196,10 @@ class Extraction:
                         added += 1
                 # If the conversation name contains a file path.
                 except FileNotFoundError:
-                    self.write_to_log("Could not create directory for {}. Transcript name contains a filepath.".format(convo), log_file)
+                    self.write_to_log("Could not create directory for {}. Transcript name contains a filepath.".format(convo), convo_dir_log)
                     not_added += 1
             else:
-                self.write_to_log("Transcript {} has unapproved tags and was not added to directory.".format(transcript_id), log_file)
+                self.write_to_log("Transcript {} has unapproved tags and was not added to directory.".format(transcript_id), convo_dir_log)
                 not_added += 1
 
             count += 1
@@ -208,7 +208,7 @@ class Extraction:
         if keep_flag:
             print("{} existing files kept and not overwritten.".format(kept))
         if not_added > 0:
-            print("{} transcripts were not added to a directory. Refer to {} and {} for further information.".format(not_added, log_file, validation_log))
+            print("{} transcripts were not added to a directory. Refer to {} and {} for further information.".format(not_added, convo_dir_log, validation_log))
         print("Completed. {} transcripts were added to their corresponding directory.".format(added))
 
     """
