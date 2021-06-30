@@ -8,9 +8,11 @@ import shutil
 
 class Extraction:
     def __init__(self, urls, token):
-        self.headers = {'Authorization': 'Bearer ' + token['api_token']}
+        self.headers = {'Authorization': 'Bearer ' + token['API_TOKEN']}
         self.urls = urls
         self.transcripts = self.extract_transcripts()
+        # self.invalid_transcripts = []
+        # self.valid_transcripts = []
 
     """
     General extraction and filtering
@@ -18,14 +20,14 @@ class Extraction:
 
     def extract_transcripts(self):
         """ Gets the transcripts from the Tiro API """
-        response = requests.get(self.urls['transcripts_url'], headers=self.headers)
+        response = requests.get(self.urls['tiro_url'], headers=self.headers)
 
         # If user is not authenticated, or an error occurs.
         if 'message' in response.json():
             print(response.json()['message'])
             # print("Fetching public transcripts...")
 
-            # response = requests.get(self.urls['transcripts_url'])
+            # response = requests.get(self.urls['tiro_url'])
             # transcripts = response.json()['transcripts']
 
             # print("Public transcripts extracted.")
@@ -40,7 +42,7 @@ class Extraction:
         # Filter so that only the conversation transcripts are stored
         self.transcripts = transcripts
         transcripts = self.filter_transcripts("__spjallromur__")
-        write_json_to_file(transcripts, "testing/transcripts.json")
+        # write_json_to_file(transcripts, "testing/transcripts.json")
 
         return transcripts
 
@@ -63,17 +65,19 @@ class Extraction:
 
     def get_transcript_by_id(self, transcript_id):
         """ Gets a transcript by id """
-        response = requests.get(self.urls['transcripts_url'] + '/' + transcript_id, headers=self.headers)
+        response = requests.get(self.urls['tiro_url'] + '/' + transcript_id, headers=self.headers)
         transcript = response.json()
 
         # write_json_to_file(transcript, "transcript.json")
 
         return transcript
 
-    def get_subject_data(self, json_transcript):
+    def get_subject_data(self, transcript):
         """ Gets subject data (convo and speaker) of a transcript """
+        t_id = self.get_transcript_id(transcript)
+        t_obj = self.get_transcript_by_id(t_id)
         # Split on _ or .
-        convo, _, speaker, _ = re.split('_|\.', json_transcript['metadata']['subject'])
+        convo, _, speaker, _ = re.split('_|\.', t_obj['metadata']['subject'])
 
         return convo, speaker
 
@@ -117,23 +121,46 @@ class Extraction:
         """ Creates a directory for each conversation, containing corresponding audio and json files. """
         print("Creating a directory for each conversation. This might take a moment...")
         log_file = 'conversations_dir_log.txt'
+        validation_log = 'validation_log.txt'
         self.clear_log(log_file)
+        self.clear_log(validation_log)
+        keep_flag = False
 
         try:
             os.mkdir("conversations")
-        # If conversations directory already exists, clear it.
+        # If conversations directory already exists, give user a choice to clear the directory, or keep existing files.
+        # Kept files will not be overwritten.
         except FileExistsError:
-            print("Clearing conversations directory...")
-            for dir in os.listdir("conversations"):
-                shutil.rmtree("conversations/" + dir)
+            print("Conversations directory already exists.")
+            print("\tc - Clear conversations directory and start from scratch.")
+            print("\tk - Keep existing conversations, and only add new ones.")
+            print("\tq - Quit and cancel.")
+            while True:
+                option = input("Enter c to clear, or k to keep: ")
+                if option == "c":
+                    print("Clearing conversations directory...")
+                    for dir in os.listdir("conversations"):
+                        shutil.rmtree("conversations/" + dir)
+                    break
+                elif option == "k":
+                    print("Keeping old files, and only adding new ones...")
+                    keep_flag = True
+                    break
+                elif option == "q":
+                    return
+                else:
+                    print("Please enter a valid option.")
 
         count = 0
         not_added = 0
         added = 0
+        if keep_flag:
+            kept = 0
         for t in self.transcripts:
             transcript_id = self.get_transcript_id(t)
             # If the transcript is invalid, a test transcript, or unifinished, it will not be added to a directory.
-            if t in self.filter_transcripts("INVALID"):
+            # if t in self.invalid_transcripts:
+            if not self.validate_transcript(t, validation_log):
                 self.write_to_log("Transcript {} is invalid and was not added to directory.".format(transcript_id), log_file)
                 not_added += 1
             # Remove if guaranteed that no test transcript has __spjallromur__/TRANSCRIBED/PROOFREAD tag, otherwise the subject parsing causes problems.
@@ -149,13 +176,6 @@ class Extraction:
                 transcript = self.get_transcript_by_id(transcript_id)
                 convo, speaker = self.get_subject_data(transcript)
                 t_demographics = self.get_demographics(convo, speaker)
-
-                # valid = self.validate_transcript_demographics_duration(t, t_demographics)
-                # if not valid:
-                #     self.write_to_log("Transcript {} and its demographics (/{}/{}_client_{}.json) duration do not match. Transcript not added to directory.".format(transcript_id, convo, convo, speaker), log_file)
-                #     not_added += 1
-                #     continue
-
                 # Where the file should be written
                 filepath = "conversations/{}/speaker_{}_convo_{}".format(convo, speaker, convo)
                 try:
@@ -166,10 +186,14 @@ class Extraction:
                     added += 1
                 # If a directory for a conversation exists, just add the corresponding files.
                 except FileExistsError:
-                    self.get_audio_file_from_uri(transcript, filepath)
-                    write_json_to_file(t_demographics, filepath + "_demographics.json")
-                    write_json_to_file(transcript, filepath + "_transcript.json")
-                    added += 1
+                    # If user does not want to overwrite existing files, do nothing to those files.
+                    if keep_flag and (os.path.exists(filepath + "_demographics.json") or os.path.exists(filepath + "_transcript.json") or os.path.exists(filepath + ".wav")):
+                        kept += 1
+                    else:
+                        self.get_audio_file_from_uri(transcript, filepath)
+                        write_json_to_file(t_demographics, filepath + "_demographics.json")
+                        write_json_to_file(transcript, filepath + "_transcript.json")
+                        added += 1
                 # If the conversation name contains a file path.
                 except FileNotFoundError:
                     self.write_to_log("Could not create directory for {}. Transcript name contains a filepath.".format(convo), log_file)
@@ -181,38 +205,110 @@ class Extraction:
             count += 1
             print("{}/{} transcripts processed.".format(count, len(self.transcripts)))
 
+        if keep_flag:
+            print("{} existing files kept and not overwritten.".format(kept))
         if not_added > 0:
-            print("{} transcripts were not added to a directory. Refer to conversations_dir_log.txt for further information.".format(not_added))
+            print("{} transcripts were not added to a directory. Refer to {} and {} for further information.".format(not_added, log_file, validation_log))
         print("Completed. {} transcripts were added to their corresponding directory.".format(added))
 
     """
     Transcript validation
     """
 
-    def validate_transcript_duration(self, transcript):
-        """ Validates the length of the transcript. Returns False if invalid, True otherwise. """
-        audio_duration = float(transcript['metadata']['recordingDuration'][:-1])
-        # if the last segment time stamps exceed that of the audio duration
-        last_segment = transcript['segments'][-1]
-        if float(last_segment['endTime'][:-1]) > audio_duration:
+    # def validate_transcripts(self):
+    #     """ Validates the extracted transcripts and sets invalid_transcripts and valid_transcripts """
+    #     print("Validating transcripts...")
+    #     validation_log = "validation_log.txt"
+    #     self.clear_log(validation_log)
+    #     count = 0
+    #     invalid = []
+
+    #     for t in self.transcripts:
+    #         t_id = self.get_transcript_id(t)
+
+    #         if not self.validate_transcript(t, validation_log):
+    #             invalid.append(t)
+
+    #         count += 1
+    #         print("{}/{} validated.".format(count, len(self.transcripts)))
+
+
+    #     print("{} transcripts are invalid.".format(len(invalid)))
+    #     self.invalid_transcripts = invalid
+
+    #     valid = [obj for obj in self.transcripts if (obj not in invalid)]
+    #     self.valid_transcripts = valid
+
+    #     # write_json_to_file(invalid, "testing/invalid.json")
+    #     # write_json_to_file(valid, "testing/valid.json")
+
+    #     print("Validation complete.")
+    #     print("{} valid transcripts, and {} invalid transcripts. Refer to validation_log.txt for further information.".format(len(valid), len(invalid)))
+
+    def validate_transcript(self, transcript, log):
+        """ Validates a single transcript """
+        t_id = self.get_transcript_id(transcript)
+        # t_obj = self.get_transcript_by_id(t_id)
+
+        if transcript in self.filter_transcripts("INVALID"):
+            self.write_to_log("Transcript {} was tagged INVALID.".format(t_id), "validation_log.txt")
             return False
-        # if the duration of the transcript exceeds that of the audio file
-        first_segment = transcript['segments'][0]
-        transcript_duration = float(last_segment['endTime'][:-1]) - float(first_segment['startTime'][:-1])
-        if transcript_duration > audio_duration:
+        # Transcript duration validation
+        t_duration = self.validate_transcript_duration(transcript, log)
+        if not t_duration:
             return False
+        # Demographics duration validation
+        convo, speaker = self.get_subject_data(transcript)
+        t_demo = self.get_demographics(convo, speaker)
+        t_demographics_duration = self.validate_transcript_demographics_duration(transcript, t_demo, log)
+        if not t_demographics_duration:
+            return False
+        # TODO: Other validation checks.
 
         return True
 
-    def validate_transcript_demographics_duration(self, transcript, t_demographics):
+    def validate_transcript_duration(self, transcript, log):
+        """ Validates the length of the transcript. Returns False if invalid, True otherwise. """
+        t_id = self.get_transcript_id(transcript)
+        t_obj = self.get_transcript_by_id(t_id)
+
+        if t_obj['metadata']['recordingDuration'] is None:
+            self.write_to_log("Transcript {} has recordingDuration set as null.".format(t_id), log)
+            return False
+
+        try:
+            # This can only be validated for finished transcriptions
+            if transcript in self.filter_transcripts("TRANSCRIBED") or transcript in self.filter_transcripts("PROOFREAD"):
+                audio_duration = float(t_obj['metadata']['recordingDuration'][:-1])
+                # if the last segment time stamps exceed that of the audio duration
+                last_segment = t_obj['segments'][-1]
+                if float(last_segment['endTime'][:-1]) > audio_duration:
+                    self.write_to_log("Transcript {} exceeds the audio duration. Last segment ends at: {}, audio duration: {}.".format(t_id, last_segment['endTime'], audio_duration))
+                    return False
+                # if the duration of the transcript exceeds that of the audio file
+                first_segment = t_obj['segments'][0]
+                transcript_duration = float(last_segment['endTime'][:-1]) - float(first_segment['startTime'][:-1])
+                if transcript_duration > audio_duration:
+                    self.write_to_log("Transcript {} exceeds the audio duration. Transcript duration: {}, audio duration: {}.".format(t_id, transcript_duration, audio_duration))
+                    return False
+
+            return True
+
+        except TypeError as e:
+            self.write_to_log("Transcript {} has segment timestamps with wrong type. Could not calculate transcript duration.".format(t_id, e), log)
+            return False
+
+    def validate_transcript_demographics_duration(self, transcript, t_demographics, log):
         """ Validates that the length of the transcript does not exceed the spjall demographics duration """
         # The Tiro transcript must always be shorter or equal to the demographics duration.
-        if transcript['metadata']['recordingDuration'] is None:
-            t_id = self.get_transcript_id(transcript)
-            # convo, speaker = self.get_subject_data(transcript)
-            print("Duration of transcript {} is set as null.".format(t_id))
+        t_id = self.get_transcript_id(transcript)
+        t_obj = self.get_transcript_by_id(t_id)
+
+        if t_obj['metadata']['recordingDuration'] is None:
+            self.write_to_log("Transcript {} has recordingDuration set as null.".format(t_id), log)
             return False
-        if float(transcript['metadata']['recordingDuration'][:-1]) > float(t_demographics['duration_seconds']):
+        if float(t_obj['metadata']['recordingDuration'][:-1]) > float(t_demographics['duration_seconds']):
+            self.write_to_log("Transcript {} duration exceeds the demographics duration.".format(t_id), log)
             return False
 
         return True
@@ -244,13 +340,8 @@ if __name__ == '__main__':
     extract = Extraction(urls, token)
     print("Recordings transcribed: {:.2f}%".format(extract.get_progress()))
 
+    # extract.validate_transcripts()
+
     extract.make_conversation_directory()
-
-    # transcript = extract.get_transcript_by_id(urls['test_id'])
-
-    # duration = extract.get_total_duration_of_speech(transcript)
-    # # print("Total:", duration, "seconds", "=", duration/60, "minutes")
-
-    # print("Transcript is valid:", extract.validate_transcript_duration(transcript))
 
 

@@ -4,3 +4,4 @@ testing/
 __pycache__
 conversations/
 conversations_dir_log.txt
+validation_log.txt
