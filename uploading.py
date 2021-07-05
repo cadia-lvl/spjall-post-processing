@@ -90,4 +90,4 @@ if __name__ == "__main__":
     transcripts_objects = Extraction(urls,tokens)
     extracted = transcripts_objects.filter_transcripts('__spjallromur__')
 
-    #post(extracted,spjall_response)
+    post(extracted,spjall_response)
