@@ -49,9 +49,10 @@ To add:
 - [ ] Create a list out of vocabulary words based on a pronunciation dictionary.
 - [ ] Validate that the transcripts has proper tags, i.e. transcribed, proofread, etc.
 - [x] Validate that the duration of the transcripts does not exceed that of the corresponding audio files.
+- [ ] Submit a tiro alignment job for any transcripts with segments which have a null timestamp (the server is slow)
 - [ ] Validate that the timestamps for speech do not correlate with any durations of silence over 30 seconds long.
 - [x] Create a folder for each conversation.
-- [ ] Validate that the transcript, audio, and metadata names follow the correct naming scheme.
+- [ ] Validate that the transcript, audio, and demographics files follow the correct naming scheme.
 - [ ] Make sure that the dataset meets both the clarin and the ldc standard.
 - [ ] Create a running total of transcribed conversation count out of the total conversation count.
 - [ ] Create a list of out of vocabulary words based on an existing pronunciation dictionary
@@ -68,13 +69,18 @@ To add:
   - Culture
   - Weather
   - Other
-- [ ] Redact "steini" from any conversations which were spoken before May 3rd.
+- [ ] Remove reference from the demographics metadata
+- [ ] Remove ritari keyword from the transcript files
+- [ ] Remove uri references in the transcript files which refer to a non-redacted version of the audio.
+- [ ] Redact audio of personal information
+  - [ ] Redact "steini" from any conversations which were spoken before May 3rd.
+
 
 
 ## Authors
-Lára Margrét H. Hólmfriðardóttir
-Málfriður Anna Eiríksdóttir
-Judy Y. Fong lvl@judyyfong.xyz
+- Lára Margrét H. Hólmfriðardóttir
+- Málfriður Anna Eiríksdóttir
+- Judy Y. Fong lvl@judyyfong.xyz
 
 
 ## License
