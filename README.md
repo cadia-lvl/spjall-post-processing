@@ -8,9 +8,9 @@ To start out, we will automate the submission and extraction flow of audio files
 
 The corpus has the following format:
 ```
-        README.txt
+        README.md
         conversations/
-                convo_id/
+                xxx/
                         speaker_x_convo_xxx_demographics.json
                         speaker_x_convo_xxx_transcript.json
                         speaker_x_convo_xxx.wav

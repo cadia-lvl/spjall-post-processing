@@ -1,3 +1,5 @@
+# Author: Lára Margrét H Hólmfríðardóttir
+
 import requests
 import json
 import argparse
@@ -20,14 +22,14 @@ class Extraction:
 
     def extract_transcripts(self):
         """ Gets the transcripts from the Tiro API """
-        response = requests.get(self.urls['tiro_url'], headers=self.headers)
+        response = requests.get(self.urls['transcripts_url'], headers=self.headers)
 
         # If user is not authenticated, or an error occurs.
         if 'message' in response.json():
             print(response.json()['message'])
             # print("Fetching public transcripts...")
 
-            # response = requests.get(self.urls['tiro_url'])
+            # response = requests.get(self.urls['transcripts_url'])
             # transcripts = response.json()['transcripts']
 
             # print("Public transcripts extracted.")
@@ -65,7 +67,7 @@ class Extraction:
 
     def get_transcript_by_id(self, transcript_id):
         """ Gets a transcript by id """
-        response = requests.get(self.urls['tiro_url'] + '/' + transcript_id, headers=self.headers)
+        response = requests.get(self.urls['transcripts_url'] + '/' + transcript_id, headers=self.headers)
         transcript = response.json()
 
         # write_json_to_file(transcript, "transcript.json")
@@ -215,6 +217,9 @@ class Extraction:
     Transcript validation
     """
 
+    # Was intended to validate before making directories, but validation happens inside the for loop in make_conversation_directory to save time.
+    # Not being used as it is, commented out in case it is needed later.
+
     # def validate_transcripts(self):
     #     """ Validates the extracted transcripts and sets invalid_transcripts and valid_transcripts """
     #     print("Validating transcripts...")
@@ -343,5 +348,3 @@ if __name__ == '__main__':
     # extract.validate_transcripts()
 
     extract.make_conversation_directory()
-
-
