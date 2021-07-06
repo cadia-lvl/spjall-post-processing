@@ -9,18 +9,25 @@ from extract import Extraction
 def post(extracted,spjall_response):
     '''checks if the audio file is already on tiro. Creates body for the files and posts them to tiro.'''
     print('Posting files to tiro')
+    submitted_file = open('files_submitted_to_tiro.log','w')
     counter = 0
-    for i in range(len(extracted)):
+    for i in range(len(spjall_response.json())):
       is_a = False
       is_b = False
       for elem in extracted:
-        if spjall_response.json()[i]['session_id'] in elem['metadata']['subject']:
-          if 'client_a' in elem['metadata']['subject']:
+        if elem['metadata']['recordingDuration'] == None:
+          is_a = True
+          is_b = True
+        else:
+          if spjall_response.json()[i] == None:
             is_a = True
-          elif 'client_b' in elem['metadata']['subject']:
             is_b = True
-        if is_a and is_b:
-          return None
+          else:
+            if spjall_response.json()[i]['session_id'] in elem['metadata']['subject']:
+              if 'client_a' in elem['metadata']['subject']:
+                is_a = True
+              elif 'client_b' in elem['metadata']['subject']:
+                is_b = True
 
       authorization = {'Authorization': "Bearer {}".format(API_TOKEN)}
 
@@ -30,7 +37,7 @@ def post(extracted,spjall_response):
         body_a = create_body(subject_a,test_a)
         a_res = requests.post(urls['tiro_url'],data=json.dumps(body_a),headers=authorization)
         counter += 1
-        print(a_res) #should print to a file instead
+        print(a_res.json(), file = submitted_file) 
         if counter>=10:
           return
         
@@ -41,11 +48,10 @@ def post(extracted,spjall_response):
         body_b = create_body(subject_b,test_b)
         b_res = requests.post(urls['tiro_url'],data=json.dumps(body_b),headers=authorization)
         counter += 1
-        print(b_res) #should print to a file instead
+        print(b_res.json(),file = submitted_file) 
         if counter>=10:
           return
-        
-
+      submitted_file.close()  
     return None
 
 
@@ -67,7 +73,6 @@ def create_body(subject,test):
     },
     "useUri": True,
     "uri": test
-    
     }
     return body
 

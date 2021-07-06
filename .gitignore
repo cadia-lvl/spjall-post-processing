@@ -3,3 +3,4 @@ config/urls.json
 urls.json
 token.json
 transcripts.json
+files_submitted_to_tiro.log
