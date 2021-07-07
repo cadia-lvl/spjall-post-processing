@@ -12,15 +12,12 @@ def post(extracted,spjall_response):
     submitted_file = open('files_submitted_to_tiro.log','w')
     counter = 0
     for i in (0,2):#range(len(spjall_response.json())):
-      print(i)
       is_a = False
       is_b = False
       if spjall_response.json()[i] != None:
-        print('a')
         for elem in extracted:
           if elem['metadata']['recordingDuration'] != None:
             if spjall_response.json()[i]['session_id'] in elem['metadata']['subject']:
-              print('abc')
               if 'client_a' in elem['metadata']['subject']:
                 is_a = True
               elif 'client_b' in elem['metadata']['subject']:
@@ -30,8 +27,6 @@ def post(extracted,spjall_response):
         is_b = True
 
       authorization = {'Authorization': "Bearer {}".format(API_TOKEN)}
-      print(is_a)
-      print(is_b)
 
       if not is_a:
         test_a = samromur_url + "/" + spjall_response.json()[i]['session_id']+"/"+spjall_response.json()[i]['session_id']+'/_client_a.wav'
@@ -96,5 +91,5 @@ if __name__ == "__main__":
 
     transcripts_objects = Extraction(urls,tokens)
     extracted = transcripts_objects.filter_transcripts('__spjallromur__')
-
+    
     post(extracted,spjall_response)
