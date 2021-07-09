@@ -29,7 +29,7 @@ def post(extracted,spjall_response):
       authorization = {'Authorization': "Bearer {}".format(API_TOKEN)}
 
       if not is_a:
-        test_a = samromur_url + "/" + spjall_response.json()[i]['session_id']+"/"+spjall_response.json()[i]['session_id']+'_client_a.wav'
+        test_a = samromur_url + "/" + spjall_response.json()[i]['session_id'] + "/"+spjall_response.json()[i]['session_id'] + '_client_a.wav'
         subject_a = spjall_response.json()[i]['session_id']+'_client_a.wav'
         body_a = create_body(subject_a,test_a)
         a_res = requests.post(urls['tiro_url'],data=json.dumps(body_a),headers=authorization)
@@ -37,10 +37,9 @@ def post(extracted,spjall_response):
         print(a_res.json(), file = submitted_file) 
         if counter>=10:
           return
-        
 
       if not is_b:
-        test_b = samromur_url + "/" + spjall_response.json()[i]['session_id']+"/"+spjall_response.json()[i]['session_id']+'_client_b.wav'
+        test_b = samromur_url + "/" + spjall_response.json()[i]['session_id'] + "/"+spjall_response.json()[i]['session_id'] + '_client_b.wav'
         subject_b = spjall_response.json()[i]['session_id']+'_client_b.wav'
         body_b = create_body(subject_b,test_b)
         b_res = requests.post(urls['tiro_url'],data=json.dumps(body_b),headers=authorization)
