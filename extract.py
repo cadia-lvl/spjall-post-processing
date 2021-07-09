@@ -6,7 +6,7 @@ import os
 
 class Extraction:
     def __init__(self, urls, token):
-        self.headers = {'Authorization': 'Bearer ' + token['api_token']}
+        self.headers = {'Authorization': 'Bearer ' + token['API_TOKEN']}
         self.urls = urls
         self.transcripts = self.extract_transcripts()
 
@@ -31,7 +31,7 @@ class Extraction:
 
             # print("Transcripts extracted.")
 
-        # write_json_to_file(transcripts, "transcripts.json")
+            write_json_to_file(transcripts, "transcripts.json")
 
         return transcripts
 
