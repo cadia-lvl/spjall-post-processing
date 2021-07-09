@@ -2,7 +2,7 @@
 {
     "spjall_url" : "abcd",
     "tiro_url" : "https://ritari.talgreinir.is/v1alpha1/transcripts",
-    "saromur_url" : "https://s3bucketname.s3.eu-west-2.amazonaws.com",
+    "samromur_url" : "https://s3bucketname.s3.eu-west-2.amazonaws.com",
     "test_audio" : "https://s3bucketname.s3.eu-west-2.amazonaws.com/uu_id_client_a.wav"
 }
    
