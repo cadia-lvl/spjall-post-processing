@@ -1,4 +1,6 @@
 # Author: Málfríður Anna Eiríksdóttir
+# Add to crontab
+# 0 16 * * * python3 uploading.py
 
 import json
 import requests

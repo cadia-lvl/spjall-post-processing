@@ -56,7 +56,7 @@ To add:
 
 
 ## Task List
-- [ ] Automatically send audio files to the Tiro API.
+- [x] Automatically send audio files to the Tiro API.
 - [x] Automatically receive transcripts from the Tiro API.
 - [ ] Get the total duration of speech from the transcripts and verify it.
 - [ ] Create a list out of vocabulary words based on a pronunciation dictionary.
