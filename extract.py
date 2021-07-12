@@ -16,6 +16,7 @@ class Extraction:
         self.headers = {'Authorization': 'Bearer ' + token['API_TOKEN']}
         self.urls = urls
         self.transcripts = self.extract_transcripts()
+        self.transcripts = self.filter_transcripts("__spjallromur__")
         # self.invalid_transcripts = []
         # self.valid_transcripts = []
 
@@ -50,14 +51,16 @@ class Extraction:
         # Filter so that only the conversation transcripts are stored
         self.transcripts = transcripts
         transcripts = self.filter_transcripts("__spjallromur__")
-        # write_json_to_file(transcripts, "testing/transcripts.json")
+        write_json_to_file(transcripts, "testing/transcripts.json")
 
 
         return transcripts
 
     def filter_transcripts(self, kw):
         """ Filters transcripts by keyword """
-        filtered = [obj for obj in self.transcripts if (kw in obj['metadata']['keywords'])]
+        filtered = [obj for obj in self.transcripts
+                    if (kw in obj['metadata']['keywords'] and
+                        obj['metadata']['recordingDuration'] is not None)]
         # write_json_to_file(filtered, "filtered.json")
 
         return filtered
@@ -86,6 +89,10 @@ class Extraction:
 
         return total_hours
 
+    def get_todo(self):
+        """ Returns the TODO conversation count """
+        todo = self.filter_transcripts("TODO")
+        return len(todo)
 
     """
     Transcript oriented processing
