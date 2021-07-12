@@ -76,10 +76,10 @@ def create_body(subject,test):
     return body
 
 if __name__ == "__main__":
-    urls_file = open('urls.json')
+    urls_file = open('config/urls.json')
     urls = json.load(urls_file)
 
-    token_file = open('token.json')
+    token_file = open('config/token.json')
     tokens = json.load(token_file)
 
     API_TOKEN = tokens['API_TOKEN']
