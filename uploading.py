@@ -1,4 +1,6 @@
 # Author: Málfríður Anna Eiríksdóttir
+# Add to crontab
+# 0 16 * * * python3 uploading.py
 
 import json
 import requests
@@ -10,7 +12,6 @@ def post(extracted,spjall_response):
     '''checks if the audio file is already on tiro. Creates body for the files and posts them to tiro.'''
     print('Posting files to tiro')
     submitted_file = open('files_submitted_to_tiro.log','w')
-    counter = 0
     spjall_convo_list = spjall_response.json()
     for convo in spjall_convo_list:
       is_a = False
@@ -32,27 +33,16 @@ def post(extracted,spjall_response):
           subject_a = convo['session_id']+'_client_a.wav'
           body_a = create_body(subject_a,test_a)
           a_res = requests.post(urls['tiro_url'],data=json.dumps(body_a),headers=authorization)
-          counter += 1
           print(a_res.json(), file = submitted_file) 
-          if counter>=10:
-            return
 
         if not is_b:
           test_b = samromur_url + "/" + convo['session_id'] + "/"+convo['session_id'] + '_client_b.wav'
           subject_b = convo['session_id']+'_client_b.wav'
           body_b = create_body(subject_b,test_b)
           b_res = requests.post(urls['tiro_url'],data=json.dumps(body_b),headers=authorization)
-          counter += 1
           print(b_res.json(),file = submitted_file) 
-          if counter>=10:
-            print('10 files have been sumbitted')
-            return
 
-    if counter == 0:
-      print('No files need to be submitted.')
-
-    if 0 < counter < 10:
-      print('All non-transcribed convos have been submitted to tiro')
+    print('All non-transcribed convos have been submitted to tiro')
     return None
 
 
