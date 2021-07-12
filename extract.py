@@ -41,9 +41,6 @@ class Extraction:
 
             # print("Transcripts extracted.")
 
-
-            write_json_to_file(transcripts, "transcripts.json")
-
         # Filter so that only the conversation transcripts are stored
         self.transcripts = transcripts
         transcripts = self.filter_transcripts("__spjallromur__")
