@@ -5,7 +5,7 @@ token.json
 transcripts.json
 files_submitted_to_tiro.log
 testing/
-__pycache__
+__pycache__/
 conversations/
 conversations_dir_log.txt
 validation_log.txt
