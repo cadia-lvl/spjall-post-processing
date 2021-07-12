@@ -22,7 +22,10 @@ class Extraction:
 
     def extract_transcripts(self):
         """ Gets the transcripts from the Tiro API """
-        response = requests.get(self.urls['transcripts_url'], headers=self.headers)
+        page_size = {'pageSize': 1000}
+        response = requests.get(self.urls['transcripts_url'],
+                                params=page_size,
+                                headers=self.headers)
 
         # If user is not authenticated, or an error occurs.
         if 'message' in response.json():

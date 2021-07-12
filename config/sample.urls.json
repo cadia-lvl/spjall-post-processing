@@ -1,7 +1,7 @@
 {
     "spjall_url": "abcd",
     "tiro_url": "https://ritari.talgreinir.is/v1alpha1/transcriptjob:submit",
-    "transcripts_url": "https://ritari.talgreinir.is/v1alpha1/transcripts?pageSize=1000",
+    "transcripts_url": "https://ritari.talgreinir.is/v1alpha1/transcripts",
     "samromur_url": "https://s3bucketname.s3.eu-west-2.amazonaws.com",
     "test_audio": "https://s3bucketname.s3.eu-west-2.amazonaws.com/uu_id_client_a.wav",  
     "filter_transcripts_url": "https://ritari.talgreinir.is/v1alpha1/transcripts?filter=metadata.keywords%20CONTAINS%20",
