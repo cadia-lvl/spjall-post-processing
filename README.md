@@ -10,10 +10,10 @@ The corpus has the following format:
 ```
         README.md
         conversations/
-                xxx/
-                        speaker_x_convo_xxx_demographics.json
-                        speaker_x_convo_xxx_transcript.json
-                        speaker_x_convo_xxx.wav
+        xxxx/
+            speaker_x_convo_xxxx_demographics.json
+            speaker_x_convo_xxxx_transcript.json
+            speaker_x_convo_xxxx.wav
 ```
 
 ## Packages and Installation
@@ -21,7 +21,20 @@ List packages required to run the scripts, and how to install them.
 
 
 ## Running
-Steps to run the scripts.
+You need to have your versions of the files within config.
+
+The script to submit conversations to [Tiro](https://tal.tiro.is) is run as a
+cron job using the following command:
+
+```
+python3 uploading.py
+```
+
+To run the post-processing script, currently, you run it with the following
+command:
+```
+python3 extract.py config/urls.json config/token.json
+```
 
 
 ## Statistics
@@ -32,7 +45,7 @@ To add:
 
 
 ## Notes
-- Each participant's recording shall be coordinated with other participants' recordings. These files shall be converted to .wav files where there is one channel for each participant. 
+- Each participant's recording shall be coordinated with other participants' recordings. These files shall be converted to .wav files where there is one channel for each participant.
 - Participants have the option of marking portions they do not want included in published data. These portions can be 'beeped' or cut out using tools such as Audacity.
 - Each participant has their own .json file, where their portion of the conversation is written.
 - Files should be named as follows:
