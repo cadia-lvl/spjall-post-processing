@@ -11,13 +11,14 @@ def post(extracted,spjall_response):
     print('Posting files to tiro')
     submitted_file = open('files_submitted_to_tiro.log','w')
     counter = 0
-    for i in (0,2):#range(len(spjall_response.json())):
+    spjall_convo_list = spjall_response.json()
+    for convo in spjall_convo_list:
       is_a = False
       is_b = False
-      if spjall_response.json()[i] != None:
+      if convo != None:
         for elem in extracted:
           if elem['metadata']['recordingDuration'] != None:
-            if spjall_response.json()[i]['session_id'] in elem['metadata']['subject']:
+            if convo['session_id'] in elem['metadata']['subject']:
               if 'client_a' in elem['metadata']['subject']:
                 is_a = True
               elif 'client_b' in elem['metadata']['subject']:
@@ -29,8 +30,8 @@ def post(extracted,spjall_response):
       authorization = {'Authorization': "Bearer {}".format(API_TOKEN)}
 
       if not is_a:
-        test_a = samromur_url + "/" + spjall_response.json()[i]['session_id'] + "/"+spjall_response.json()[i]['session_id'] + '_client_a.wav'
-        subject_a = spjall_response.json()[i]['session_id']+'_client_a.wav'
+        test_a = samromur_url + "/" + convo['session_id'] + "/"+convo['session_id'] + '_client_a.wav'
+        subject_a = convo['session_id']+'_client_a.wav'
         body_a = create_body(subject_a,test_a)
         a_res = requests.post(urls['tiro_url'],data=json.dumps(body_a),headers=authorization)
         counter += 1
@@ -39,14 +40,21 @@ def post(extracted,spjall_response):
           return
 
       if not is_b:
-        test_b = samromur_url + "/" + spjall_response.json()[i]['session_id'] + "/"+spjall_response.json()[i]['session_id'] + '_client_b.wav'
-        subject_b = spjall_response.json()[i]['session_id']+'_client_b.wav'
+        test_b = samromur_url + "/" + convo['session_id'] + "/"+convo['session_id'] + '_client_b.wav'
+        subject_b = convo['session_id']+'_client_b.wav'
         body_b = create_body(subject_b,test_b)
         b_res = requests.post(urls['tiro_url'],data=json.dumps(body_b),headers=authorization)
         counter += 1
         print(b_res.json(),file = submitted_file) 
         if counter>=10:
+          print('10 files have been sumbitted')
           return
+
+    if counter == 0:
+      print('No files need to be submitted.')
+
+    if 0 < counter < 10:
+      print('All non-transcribed convos have been submitted to tiro')
     return None
 
 
@@ -59,10 +67,9 @@ def create_body(subject,test):
         "subject": subject,
         "description": "",
         "keywords": [
-          "this is a test",
-          #"__spjallromur__",
-          #"M\u00e1lt\u00e6kni\u00e1\u00e6tlun",
-          #"TODO"
+          "__spjallromur__",
+          "M\u00e1lt\u00e6kni\u00e1\u00e6tlun",
+          "TODO"
         ]
       },
       "useUri": True,
