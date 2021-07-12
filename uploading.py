@@ -9,10 +9,18 @@ from extract import Extraction
 
 
 def post(extracted,spjall_response):
-    '''checks if the audio file is already on tiro. Creates body for the files and posts them to tiro.'''
+    '''
+    Checks if the audio file is already on tiro. Creates body for the files and
+    posts them to tiro.
+
+    Some recordings on spjall have audio that's too short, exclude those when
+    submitting to Tiro's editor because Tiro always shows them as
+    recordingDuration null even if it's actually 2 seconds long.
+    '''
     print('Posting files to tiro')
     submitted_file = open('files_submitted_to_tiro.log','w')
     spjall_convo_list = spjall_response.json()
+    min_duration = 60
     for convo in spjall_convo_list:
       is_a = False
       is_b = False
@@ -28,14 +36,14 @@ def post(extracted,spjall_response):
 
         authorization = {'Authorization': "Bearer {}".format(API_TOKEN)}
 
-        if not is_a:
+        if (not is_a and convo['client_a']['duration_seconds'] > min_duration):
           test_a = samromur_url + "/" + convo['session_id'] + "/"+convo['session_id'] + '_client_a.wav'
           subject_a = convo['session_id']+'_client_a.wav'
           body_a = create_body(subject_a,test_a)
           a_res = requests.post(urls['tiro_url'],data=json.dumps(body_a),headers=authorization)
           print(a_res.json(), file = submitted_file) 
 
-        if not is_b:
+        if (not is_b and convo['client_b']['duration_seconds'] > min_duration):
           test_b = samromur_url + "/" + convo['session_id'] + "/"+convo['session_id'] + '_client_b.wav'
           subject_b = convo['session_id']+'_client_b.wav'
           body_b = create_body(subject_b,test_b)
