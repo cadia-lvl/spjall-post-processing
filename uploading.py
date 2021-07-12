@@ -23,32 +23,30 @@ def post(extracted,spjall_response):
                 is_a = True
               elif 'client_b' in elem['metadata']['subject']:
                 is_b = True
-      else:
-        is_a = True
-        is_b = True
+     
 
-      authorization = {'Authorization': "Bearer {}".format(API_TOKEN)}
+        authorization = {'Authorization': "Bearer {}".format(API_TOKEN)}
 
-      if not is_a:
-        test_a = samromur_url + "/" + convo['session_id'] + "/"+convo['session_id'] + '_client_a.wav'
-        subject_a = convo['session_id']+'_client_a.wav'
-        body_a = create_body(subject_a,test_a)
-        a_res = requests.post(urls['tiro_url'],data=json.dumps(body_a),headers=authorization)
-        counter += 1
-        print(a_res.json(), file = submitted_file) 
-        if counter>=10:
-          return
+        if not is_a:
+          test_a = samromur_url + "/" + convo['session_id'] + "/"+convo['session_id'] + '_client_a.wav'
+          subject_a = convo['session_id']+'_client_a.wav'
+          body_a = create_body(subject_a,test_a)
+          a_res = requests.post(urls['tiro_url'],data=json.dumps(body_a),headers=authorization)
+          counter += 1
+          print(a_res.json(), file = submitted_file) 
+          if counter>=10:
+            return
 
-      if not is_b:
-        test_b = samromur_url + "/" + convo['session_id'] + "/"+convo['session_id'] + '_client_b.wav'
-        subject_b = convo['session_id']+'_client_b.wav'
-        body_b = create_body(subject_b,test_b)
-        b_res = requests.post(urls['tiro_url'],data=json.dumps(body_b),headers=authorization)
-        counter += 1
-        print(b_res.json(),file = submitted_file) 
-        if counter>=10:
-          print('10 files have been sumbitted')
-          return
+        if not is_b:
+          test_b = samromur_url + "/" + convo['session_id'] + "/"+convo['session_id'] + '_client_b.wav'
+          subject_b = convo['session_id']+'_client_b.wav'
+          body_b = create_body(subject_b,test_b)
+          b_res = requests.post(urls['tiro_url'],data=json.dumps(body_b),headers=authorization)
+          counter += 1
+          print(b_res.json(),file = submitted_file) 
+          if counter>=10:
+            print('10 files have been sumbitted')
+            return
 
     if counter == 0:
       print('No files need to be submitted.')
