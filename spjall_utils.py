@@ -71,22 +71,27 @@ def get_spjall_audio_files(urls, transcripts):
     """
         Get the list of all the spjall conversations and corresponding audio
         files
-        Return a list of all untranscribed audio files
+        Return a list of all untranscribed audio files which are over the
+        min_duration (60 seconds long). Tiro cannot transcribe audio files
+        which are shorter than 1 min long.
     """
     spjall_response = requests.get(urls['spjall_url'])
     new_audio_files = []
     submitted_session_ids = get_subjects_from_transcripts(transcripts)
+    min_duration = 60
     for session in spjall_response.json():
         if session is not None:
             client_a_audio = session['session_id'] + '_client_a.wav'
             client_b_audio = session['session_id'] + '_client_b.wav'
-            if client_a_audio not in submitted_session_ids:
+            if (client_a_audio not in submitted_session_ids and
+                session['client_a']['duration_seconds'] > min_duration):
                 client_a = {
                     'session_id': session['session_id'],
                     'audio': client_a_audio
                 }
                 new_audio_files.append(client_a)
-            if client_b_audio not in submitted_session_ids:
+            if (client_b_audio not in submitted_session_ids and
+                session['client_b']['duration_seconds'] > min_duration):
                 client_b = {
                     'session_id': session['session_id'],
                     'audio': client_b_audio
