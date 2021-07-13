@@ -56,15 +56,20 @@ def get_subjects_from_transcripts(transcripts):
         Only get subjects where the recordingDuration is a number
     """
     submitted_session_ids = []
-    for transcript in transcripts:
-        if transcript['metadata']['recordingDuration'] is not None:
-            if 'storage/' in transcript['metadata']['subject']:
-                subject = transcript['metadata']['subject'] \
-                    .replace('storage/', '')
+    with open('subject_names.log', 'w') as names, open('durationNull.log',
+    'w') as durNull:
+        for transcript in transcripts:
+            if transcript['metadata']['recordingDuration'] is not None:
+                print(transcript['metadata']['subject'], file=names)
+                if 'storage/' in transcript['metadata']['subject']:
+                    subject = transcript['metadata']['subject'] \
+                        .replace('storage/', '')
+                else:
+                    subject = transcript['metadata']['subject']
+                submitted_session_ids.append(subject)
             else:
-                subject = transcript['metadata']['subject']
-            submitted_session_ids.append(subject)
-    return submitted_session_ids
+                print(transcript['name'], file=durNull)
+        return submitted_session_ids
 
 
 def get_spjall_audio_files(urls, transcripts):
@@ -100,6 +105,34 @@ def get_spjall_audio_files(urls, transcripts):
     return new_audio_files
 
 
+def get_test_transcripts(transcripts):
+    """
+        Get the test transcripts
+    """
+    test_recordings = []
+    with open('durationNull.log', 'w') as durNull:
+        for transcript in transcripts:
+            if ('test' in transcript['metadata']['keywords']) or (
+                'test2' in transcript['metadata']['keywords']):
+                test_recordings.append(transcript['name'])
+            if transcript['metadata']['recordingDuration'] is None:
+                print(transcript['name'], file=durNull)
+        return test_recordings
+
+
+def delete_bad_recordings(transcript_name, tokens):
+    """
+        Delete transcripts on talgreinir.is
+    """
+    tiro_headers = {'Authorization': 'Bearer {}'.format(tokens['API_TOKEN'])}
+    transcript = 'https://ritari.talgreinir.is/v1alpha1/' + transcript_name
+    print(transcript)
+    deletion_res = requests.delete(transcript,
+                                   headers=tiro_headers)
+    print(deletion_res.json)
+
+
+
 if __name__ == '__main__':
     FILE_TOKEN = open('config/token.json')
     TOKEN = json.load(FILE_TOKEN)
@@ -107,6 +140,11 @@ if __name__ == '__main__':
     LOCAL_URLS = json.load(URLS_FILE)
     TRANSCRIPTS_OBJECTS = Extraction(LOCAL_URLS, TOKEN)
     TRANSCRIPTS = TRANSCRIPTS_OBJECTS.transcripts
+
+    # Find test recordings and delete them
+    # test_transcripts = get_test_transcripts(TRANSCRIPTS)
+    # for test_trans in test_transcripts:
+    #     delete_bad_recordings(test_trans, TOKEN)
 
     print("TODO Recordings count: {}".format(TRANSCRIPTS_OBJECTS.get_todo()))
 
