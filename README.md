@@ -82,8 +82,8 @@ To add:
   - Culture
   - Weather
   - Other
-- [ ] Remove reference from the demographics metadata
-- [ ] Remove ritari keyword from the transcript files
+- [x] Remove reference from the demographics metadata
+- [x] Remove ritari keyword from the transcript files
 - [ ] Remove uri references in the transcript files which refer to a non-redacted version of the audio.
 - [ ] Redact audio of personal information
   - [ ] Redact "steini" from any conversations which were spoken before May 3rd.
