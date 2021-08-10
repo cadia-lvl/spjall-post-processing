@@ -91,7 +91,10 @@ class Extraction:
 
     def get_audio_file_from_uri(self, transcript, filepath):
         """ Downloads the audio file from the uri of a transcript"""
-        response = requests.get(transcript['uri'], headers=self.headers)
+        # response = requests.get(transcript['uri'], headers=self.headetrs)
+        t_id = self.get_transcript_id(transcript)
+        t = self.get_transcript_by_id(t_id)
+        response = requests.get(t['uri'])
         with open('{}.wav'.format(filepath), 'wb') as f:
             f.write(response.content)
 
@@ -256,7 +259,7 @@ class Extraction:
         # t_obj = self.get_transcript_by_id(t_id)
 
         if transcript in self.filter_transcripts("INVALID"):
-            self.write_to_log("Transcript {} was tagged INVALID.".format(t_id), "validation_log.txt")
+            self.write_to_log("Transcript {} was tagged INVALID.".format(t_id), log)
             return False
         # Transcript duration validation
         t_duration = self.validate_transcript_duration(transcript, log)
@@ -267,6 +270,9 @@ class Extraction:
         t_demo = self.get_demographics(convo, speaker)
         t_demographics_duration = self.validate_transcript_demographics_duration(transcript, t_demo, log)
         if not t_demographics_duration:
+            return False
+        t_speech_duration = self.validate_duration_of_speech(transcript, log)
+        if not t_speech_duration:
             return False
         # TODO: Other validation checks.
 
@@ -318,6 +324,69 @@ class Extraction:
 
         return True
 
+    def get_duration_of_speech(self, transcript):
+        """ Gets the total duration of speech in seconds by adding the duration of each segment in the transcript. """
+        duration = 0
+
+        for segment in transcript['segments']:
+            # [:-1] because the last letter of the string is always s for seconds. Then convert to float for subtraction.
+            segment_duration = float(segment['endTime'][:-1]) - float(segment['startTime'][:-1])
+            duration += segment_duration
+
+        return duration
+
+    def ffmpeg_duration_of_speech(self, transcript):
+        """ Uses ffmpeg's detectsilence to log intervals of silence to get duration of speech. """
+
+        self.get_audio_file_from_uri(transcript, "audio")
+
+        # self.normalize_audio(filepath)
+        # Detects silences of length 0.25s or longer. A silence is -35dB or less. Loads into a text file for parsing.
+        os.system("ffmpeg -i {} -af silencedetect=n=-35dB:d=0.25,ametadata=print:file=silencedetect.txt -f null -".format("audio.wav"))
+        silence_duration = self.parse_silence("silencedetect.txt")
+        t_duration = float(transcript['metadata']['recordingDuration'][:-1])
+        speech_duration = t_duration - silence_duration
+        os.remove("audio.wav")
+        os.remove("silencedetect.txt")
+
+        return speech_duration
+
+    def parse_silence(self, filepath):
+        """ Parses the silencedetect file for the silence durations. """ 
+        silence_duration = 0
+        with open(filepath, 'r') as log:
+            for line in log:
+                if "silence_duration" in line:
+                    _, duration = line.split("=")
+                    silence_duration += float(duration)
+
+        return silence_duration
+
+    # def normalize_audio(self, file):
+    #     # os.system('ffmpeg -i {} -af "volumedetect" -vn -sn -dn -f null /dev/null'.format(file))
+    #     os.system('ffmpeg-normalize {} -o {} -c:a aac -b:a 192k'.format(file, file))
+
+    def validate_duration_of_speech(self, transcript, log):
+        """ If the difference between the two durations is equal to or greater than 40 seconds, return False. """
+        error_threshold = 40
+        t_id = self.get_transcript_id(transcript)
+        t_obj = self.get_transcript_by_id(t_id)
+
+        try:
+            t_speech = self.get_duration_of_speech(t_obj)
+            t_ffmpeg_speech = self.ffmpeg_duration_of_speech(t_obj)
+
+        except TypeError as e:
+            self.write_to_log("Transcript {} has segment timestamps with wrong type. Could not calculate transcript duration.".format(t_id, e), log)
+            return False
+        diff = t_speech - t_ffmpeg_speech
+
+        if abs(diff) >= error_threshold:
+            self.write_to_log("Duration of speech for transcript {} is invalid. Measured and calculated difference is too great.".format(t_id), log)
+            return False
+
+        return True
+
 def load_json(json_file):
     """ Loads data from a JSON file """
     json_obj = open(json_file)
@@ -344,7 +413,10 @@ if __name__ == '__main__':
 
     extract = Extraction(urls, token)
     print("Recordings transcribed: {:.2f}%".format(extract.get_progress()))
-
     # extract.validate_transcripts()
 
     extract.make_conversation_directory()
+    # t = extract.get_transcript_by_id("3b932793-1dab-4674-bc64-bba52a892e27")
+    # t = extract.get_transcript_by_id("747fd0de2-3fd1-428e-991f-343f78d2d137")
+
+    # extract.validate_transcript(t, "validation_log.txt")
