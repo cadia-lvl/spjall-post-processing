@@ -74,9 +74,18 @@ class Extraction:
         response = requests.get(self.urls['transcripts_url'] + '/' + transcript_id, headers=self.headers)
         transcript = response.json()
 
-        # write_json_to_file(transcript, "transcript.json")
+        # write_json_to_file(transcript, "testing/transcript.json")
 
         return transcript
+
+    def remove_ritari_keyword(self, transcript):
+        """ Removes the 'ritari:' information from the transcript keywords. """
+        ritari = [kw for kw in transcript['metadata']['keywords'] if kw.startswith('ritari:')]
+        # If there is no ritari keyword
+        if len(ritari) == 0:
+            return
+        removed = [keyword for keyword in transcript['metadata']['keywords'] if not keyword.startswith('ritari:')]
+        transcript['metadata']['keywords'] = removed
 
     def get_subject_data(self, transcript):
         """ Gets subject data (convo and speaker) of a transcript """
@@ -95,7 +104,7 @@ class Extraction:
 
     def get_audio_file_from_uri(self, transcript, filepath):
         """ Downloads the audio file from the uri of a transcript"""
-        response = requests.get(transcript['uri'], headers=self.headers)
+        response = requests.get(transcript['uri'])
         with open('{}.wav'.format(filepath), 'wb') as f:
             f.write(response.content)
 
@@ -104,9 +113,14 @@ class Extraction:
         response = requests.get(urls['samromur_url'] + '/{}/{}_client_{}.json'.format(convo, convo, speaker))
         t_demographics = response.json()
 
-        # write_json_to_file(t_demographics, 't_demographics.json')
+        # write_json_to_file(t_demographics, 'testing/t_demographics.json')
 
         return t_demographics
+
+    def remove_reference_from_demo_data(self, demographics):
+        """ Removes 'reference' from the demographics metadata. """
+        if 'reference' in demographics:
+            del demographics['reference']
 
     def write_to_log(self, str, filename):
         """ Writes a message to a log text file """
@@ -182,6 +196,10 @@ class Extraction:
                 transcript = self.get_transcript_by_id(transcript_id)
                 convo, speaker = self.get_subject_data(transcript)
                 t_demographics = self.get_demographics(convo, speaker)
+                # Remove ritari keyword from transcript metadata.
+                self.remove_ritari_keyword(transcript)
+                # Remove reference from demographics metadata.
+                self.remove_reference_from_demo_data(t_demographics)
                 # Where the file should be written
                 filepath = "conversations/{}/speaker_{}_convo_{}".format(convo, speaker, convo)
                 try:
