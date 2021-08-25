@@ -335,12 +335,40 @@ class Extraction:
 
         return duration
 
+    # TODO: Fix null timestamps, possibly with tiro alignment jobs, so that transcripts can be properly validated.
+    def send_tiro_alignment_job(self, transcript):
+        """ Sends tiro alignment request for a transcript in an attempt to fix NULL timestamps """
+        body = {
+            "transcript": "{}".format(transcript['name'])
+        }
+        response = requests.post(urls['tiro_alignment_submit_url'], data=json.dumps(body), headers=self.headers)
+        res = response.json()
+
+        return res
+
+    def get_tiro_alignment_jobs(self):
+        """ Gets tiro alignment jobs """
+        response = requests.get(urls['tiro_alignment_status_url'], headers=self.headers)
+        res = response.json()
+
+        return res
+
+    def get_tiro_alignment_job(self, job_id):
+        """ Gets the status of a specific alignment job """
+        # TODO: Error 13 while writing this part of the script prevented progress.
+        # I'm not sure this works as it is so some changes might have to be made, as well as updating the transcript
+        # with the complete alignment job so that the transcript can be properly validated (if the alignment job fixes segment null timestamps)
+
+        response = requests.get(urls['tiro_alignment_status_url'] + "/" + job_id, headers=self.headers)
+        res = response.json()
+
+        return res
+
     def ffmpeg_duration_of_speech(self, transcript):
         """ Uses ffmpeg's detectsilence to log intervals of silence to get duration of speech. """
 
         self.get_audio_file_from_uri(transcript, "audio")
 
-        # self.normalize_audio(filepath)
         # Detects silences of length 0.25s or longer. A silence is -35dB or less. Loads into a text file for parsing.
         os.system("ffmpeg -i {} -af silencedetect=n=-35dB:d=0.25,ametadata=print:file=silencedetect.txt -f null -".format("audio.wav"))
         silence_duration = self.parse_silence("silencedetect.txt")
@@ -352,7 +380,7 @@ class Extraction:
         return speech_duration
 
     def parse_silence(self, filepath):
-        """ Parses the silencedetect file for the silence durations. """ 
+        """ Parses the silencedetect file for the silence durations. """
         silence_duration = 0
         with open(filepath, 'r') as log:
             for line in log:
@@ -362,13 +390,9 @@ class Extraction:
 
         return silence_duration
 
-    # def normalize_audio(self, file):
-    #     # os.system('ffmpeg -i {} -af "volumedetect" -vn -sn -dn -f null /dev/null'.format(file))
-    #     os.system('ffmpeg-normalize {} -o {} -c:a aac -b:a 192k'.format(file, file))
-
     def validate_duration_of_speech(self, transcript, log):
-        """ If the difference between the two durations is equal to or greater than 40 seconds, return False. """
-        error_threshold = 40
+        """ If the difference between the two durations is equal to or greater than 60 seconds, return False. """
+        error_threshold = 60
         t_id = self.get_transcript_id(transcript)
         t_obj = self.get_transcript_by_id(t_id)
 
@@ -416,7 +440,4 @@ if __name__ == '__main__':
     # extract.validate_transcripts()
 
     extract.make_conversation_directory()
-    # t = extract.get_transcript_by_id("3b932793-1dab-4674-bc64-bba52a892e27")
-    # t = extract.get_transcript_by_id("747fd0de2-3fd1-428e-991f-343f78d2d137")
 
-    # extract.validate_transcript(t, "validation_log.txt")

@@ -5,5 +5,8 @@
     "samromur_url": "https://s3bucketname.s3.eu-west-2.amazonaws.com",
     "test_audio": "https://s3bucketname.s3.eu-west-2.amazonaws.com/uu_id_client_a.wav",  
     "filter_transcripts_url": "https://ritari.talgreinir.is/v1alpha1/transcripts?filter=metadata.keywords%20CONTAINS%20",
-    "test_url": "https://ritari.talgreinir.is/v1alpha1/transcripts/790dbd84-df1d-4d79-997b-49202d0a3e1d"
+    "test_url": "https://ritari.talgreinir.is/v1alpha1/transcripts/790dbd84-df1d-4d79-997b-49202d0a3e1d",
+    "tiro_alignment_submit_url": "https://ritari.talgreinir.is/v1alpha1/alignmentjobs:submit",
+    "tiro_alignment_status_url": "https://ritari.talgreinir.is/v1alpha1/alignmentjobs",
+    "test_alignment_url": "abcd"
 }
