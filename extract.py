@@ -65,6 +65,25 @@ class Extraction:
 
         return len(transcribed) / len(self.transcripts) * 100
 
+    def hours_transcribed(self):
+        """ Gets the total hours transcribed """
+        transcribed = self.filter_transcripts("TRANSCRIBED")
+
+        # Records unique (conversation, speaker) pairs, so that multiple transcriptions of the same side of a conversation aren't counted twice.
+        unique_cs_pairs = []
+        total_seconds = 0
+
+        for t in transcribed:
+            convo, speaker = self.get_subject_data(t)
+            if (convo, speaker) not in unique_cs_pairs:
+                unique_cs_pairs.append((convo, speaker))
+                total_seconds += float(t['metadata']['recordingDuration'][:-1])
+
+        total_hours = total_seconds/60/60
+
+        return total_hours
+
+
     """
     Transcript oriented processing
     """
@@ -366,7 +385,7 @@ if __name__ == '__main__':
 
     extract = Extraction(urls, token)
     print("Recordings transcribed: {:.2f}%".format(extract.get_progress()))
-
+    print("Total hours transcribed: {:.2f}".format(extract.hours_transcribed()))
     # extract.validate_transcripts()
 
     extract.make_conversation_directory()
