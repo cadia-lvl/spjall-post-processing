@@ -59,6 +59,7 @@ To add:
 - [x] Automatically send audio files to the Tiro API.
 - [x] Automatically receive transcripts from the Tiro API.
 - [ ] Get the total duration of speech from the transcripts and verify it.
+- [x] Get the total hours transcribed.
 - [ ] Create a list out of vocabulary words based on a pronunciation dictionary.
 - [ ] Validate that the transcripts has proper tags, i.e. transcribed, proofread, etc.
 - [x] Validate that the duration of the transcripts does not exceed that of the corresponding audio files.
