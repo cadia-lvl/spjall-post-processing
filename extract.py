@@ -92,7 +92,25 @@ class Extraction:
     def get_todo(self):
         """ Returns the TODO conversation count """
         todo = self.filter_transcripts("TODO")
-        return len(todo)
+        return todo
+
+    def hours_todo(self):
+        """ Gets the total hours transcribed """
+        todo = self.get_todo()
+
+        # Records unique (conversation, speaker) pairs, so that multiple transcriptions of the same side of a conversation aren't counted twice.
+        unique_cs_pairs = []
+        total_seconds = 0
+
+        for t in todo:
+            convo, speaker = self.get_subject_data(t)
+            if (convo, speaker) not in unique_cs_pairs:
+                unique_cs_pairs.append((convo, speaker))
+                total_seconds += float(t['metadata']['recordingDuration'][:-1])
+
+        total_hours = total_seconds/60/60
+
+        return total_hours
 
     """
     Transcript oriented processing
@@ -413,6 +431,7 @@ if __name__ == '__main__':
     extract = Extraction(urls, token)
     print("Recordings transcribed: {:.2f}%".format(extract.get_progress()))
     print("Total hours transcribed: {:.2f}".format(extract.hours_transcribed()))
+    print("Total hours todo: {:.2f}".format(extract.hours_todo()))
     # extract.validate_transcripts()
 
     extract.make_conversation_directory()

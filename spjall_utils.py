@@ -146,7 +146,8 @@ if __name__ == '__main__':
     # for test_trans in test_transcripts:
     #     delete_bad_recordings(test_trans, TOKEN)
 
-    print("TODO Recordings count: {}".format(TRANSCRIPTS_OBJECTS.get_todo()))
+    print("TODO Recordings count: {}"
+          .format(len(TRANSCRIPTS_OBJECTS.get_todo())))
 
     untranscribed_audio = get_spjall_audio_files(LOCAL_URLS, TRANSCRIPTS)
     print('# of new audio files: {}'.format(len(untranscribed_audio)))
