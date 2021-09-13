@@ -129,7 +129,7 @@ def delete_bad_recordings(transcript_name, tokens):
     print(transcript)
     deletion_res = requests.delete(transcript,
                                    headers=tiro_headers)
-    print(deletion_res.json)
+    print(deletion_res.json())
 
 
 
