@@ -10,6 +10,58 @@ import re
 import os
 import shutil
 
+class Session:
+
+    # attributes
+    a = 0
+    b = 0
+
+    def __init__(self, session_id):
+        self.session_id = session_id
+
+    def __eq__(self, other):
+        return self.session_id == other.session_id
+
+    def __ne__(self, other):
+        return self.session_id != other.session_id
+
+    def get_duration(self):
+        if self.a and self.b:
+            return (self.a + self.b) / 2
+        else:
+            return 0
+
+def hours_transcribed_by_convo(transcribed):
+    """
+        Gets the total hours transcribed by conversation, only counting
+        the duration from the longer channel of the conversation
+        Records unique (conversation, speaker) pairs, so that multiple
+        transcriptions of the same side of a conversation aren't counted twice.
+        Argument is the list of transcribed conversation channels
+    """
+
+    unique_cs_pairs = []
+    total_seconds = 0
+
+    for t in transcribed:
+        convo, _, speaker, _ = re.split('_|\.', t['metadata']['subject'])
+        current_convo = Session(convo)
+        # add session if current session doesn't exist
+        if current_convo not in unique_cs_pairs:
+            unique_cs_pairs.append(current_convo)
+        # if not then add duration of that channel
+        for mysession in unique_cs_pairs:
+            if mysession == current_convo:
+                setattr(mysession,
+                        speaker,
+                        float(t['metadata']['recordingDuration'][:-1]))
+
+    # get total hours by conversation
+    for pairs in unique_cs_pairs:
+        total_seconds += pairs.get_duration()
+    total_hours = total_seconds/60/60
+    return total_hours
+
 
 class Extraction:
     def __init__(self, urls, token):
@@ -429,6 +481,8 @@ if __name__ == '__main__':
     token = load_json(args.token_file)
 
     extract = Extraction(urls, token)
+    print("Official transcribed: {:.2f}"
+          .format(hours_transcribed_by_convo(extract.get_tagged("TRANSCRIBED"))))
     print("Recordings transcribed: {:.2f}%".format(extract.get_progress()))
     transcribed = extract.hours_transcribed()
     todo = extract.hours_tagged("TODO")
