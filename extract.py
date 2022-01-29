@@ -1,4 +1,7 @@
 # Author: Lára Margrét H Hólmfríðardóttir
+# Modified by Judy Fong - lvl@judyyfong.xyz
+
+# License Apache 2.0
 
 import requests
 import json
@@ -105,6 +108,20 @@ class Extraction:
             return
         removed = [keyword for keyword in transcript['metadata']['keywords'] if not keyword.startswith('ritari:')]
         transcript['metadata']['keywords'] = removed
+
+    def remove_transcript_description(self, transcript):
+        """ Removes description from the transcript metadata. """
+        if 'metadata' in transcript:
+            if 'description' in transcript['metadata']:
+                del transcript['metadata']['description']
+
+    def remove_transcript_uris(self, transcript):
+        """ Removes both 'originalUri' and 'uri' from the transcript object. """
+        if 'uri' in transcript:
+            del transcript['uri']
+        if 'metadata' in transcript:
+            if 'originalUri' in transcript['metadata']:
+                del transcript['metadata']['originalUri']
 
     def get_subject_data(self, transcript):
         """ Gets subject data (convo and speaker) of a transcript """
@@ -217,6 +234,7 @@ class Extraction:
                 t_demographics = self.get_demographics(convo, speaker)
                 # Remove ritari keyword from transcript metadata.
                 self.remove_ritari_keyword(transcript)
+                self.remove_transcript_description(transcript)
                 # Remove reference from demographics metadata.
                 self.remove_reference_from_demo_data(t_demographics)
                 # Where the file should be written
@@ -224,6 +242,7 @@ class Extraction:
                 try:
                     os.mkdir("conversations/{}".format(convo))
                     self.get_audio_file_from_uri(transcript, filepath)
+                    self.remove_transcript_uris(transcript)
                     write_json_to_file(t_demographics, filepath + "_demographics.json")
                     write_json_to_file(transcript, filepath + "_transcript.json")
                     added += 1
@@ -234,6 +253,7 @@ class Extraction:
                         kept += 1
                     else:
                         self.get_audio_file_from_uri(transcript, filepath)
+                        self.remove_transcript_uris(transcript)
                         write_json_to_file(t_demographics, filepath + "_demographics.json")
                         write_json_to_file(transcript, filepath + "_transcript.json")
                         added += 1
