@@ -10,10 +10,10 @@ The corpus has the following format:
 ```
         README.md
         conversations/
-        xxxx/
-            speaker_x_convo_xxxx_demographics.json
-            speaker_x_convo_xxxx_transcript.json
-            speaker_x_convo_xxxx.wav
+                     xxxx/
+                         speaker_x_convo_xxxx_demographics.json
+                         speaker_x_convo_xxxx_transcript.json
+                         speaker_x_convo_xxxx.wav
 ```
 
 ## Packages and Installation
@@ -61,7 +61,7 @@ To add:
 - [ ] Get the total duration of speech from the transcripts and verify it.
 - [x] Get the total hours transcribed.
 - [ ] Create a list out of vocabulary words based on a pronunciation dictionary.
-- [ ] Validate that the transcripts has proper tags, i.e. transcribed, proofread, etc.
+- [x] Validate that the transcripts has proper tags, i.e. transcribed, etc.
 - [x] Validate that the duration of the transcripts does not exceed that of the corresponding audio files.
 - [ ] Submit a tiro alignment job for any transcripts with segments which have a null timestamp (the server is slow)
 - [ ] Validate that the timestamps for speech do not correlate with any durations of silence over 30 seconds long.
@@ -85,9 +85,10 @@ To add:
   - Other
 - [x] Remove reference from the demographics metadata
 - [x] Remove ritari keyword from the transcript files
-- [ ] Remove uri references in the transcript files which refer to a non-redacted version of the audio.
+- [x] Remove description from the transcript files
+- [x] Remove uri references in the transcript files which refer to a non-redacted version of the audio.
 - [ ] Redact audio of personal information
-  - [ ] Redact "steini" from any conversations which were spoken before May 3rd.
+  - [ ] Redact "Steini" from any conversations which were spoken before May 3rd.
 
 
 
